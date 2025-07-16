@@ -1,0 +1,6 @@
+[submodule "axi"]
+	path = axi
+	url = https://github.com/pulp-platform/axi.git
+[submodule "opentitan"]
+	path = opentitan
+	url = git@github.com:lowRISC/opentitan.git

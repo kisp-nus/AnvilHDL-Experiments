@@ -1,0 +1,51 @@
+
+chan spill_ch<T : type> {
+    left req : (T@#1),
+    right res : (T@#1),
+    left flush : (logic@#1)
+}
+    
+// TODO: Implement an optimized spill register
+// proc spill_register<T : type> (ep : left spill_ch<T>){
+//     reg a : T;
+//     reg a_full : logic;
+//     reg b : T;
+//     reg b_full : logic;
+
+//     loop {
+//         let inp = recv ep.req >>
+//         set a := inp >>
+//         try send ep.res(*a) {
+//                     cycle 1
+//         }
+//         else{
+//             try x = recv ep.req {
+//                 set a := x;
+//                 set b := *a
+//             }
+//             else{
+//                 set b := *a
+//             } >> 
+//             send ep.res(*b)
+//         }
+//     }
+// }
+
+// proc test_spill_register() {
+    
+//     chan ep_le -- ep_ri : spill_ch<logic[8]>;
+//     spawn spill_register<logic[8]>(ep_le);
+//     loop {
+//         send ep_ri.req(8'd1)>>
+//         cycle 1 >>
+//         let res = recv ep_ri.res >>
+//         dprint "Received: %d" (res);
+//         send ep_ri.req(8'd2) >>
+//         cycle 1 >>
+//         send ep_ri.req(8'd3) >>
+//         cycle 4 >>
+//         let res = recv ep_ri.res >>
+//         dprint "Received: %d" (res)
+
+//     }
+// }    

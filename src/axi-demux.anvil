@@ -1,0 +1,130 @@
+
+import "common_cells.anvil"
+
+chan slave_ch<w_chan_t : type, 
+              aw_chan_t : type, 
+              b_chan_t : type, 
+              ar_chan_t : type, 
+              r_chan_t : type, 
+              select_t : type> 
+{
+    left slv_req_aw : (aw_chan_t@#1),
+    left slv_req_w  : (w_chan_t@#1),
+    right slv_res_b : (b_chan_t@#1),
+    left slv_req_ar : (ar_chan_t@#1),
+    right slv_res_r : (r_chan_t@#1),
+    left slv_w_select : (select_t@#1),
+    left slv_r_select : (select_t@#1)
+}
+chan master_ch<aw_chan_t : type, 
+              w_chan_t : type, 
+              b_chan_t : type, 
+              ar_chan_t : type, 
+              r_chan_t : type> {
+    right mst_aw_req : (aw_chan_t@#1),
+    right mst_w_req  : (w_chan_t@#1),
+    left mst_b_resp  : (b_chan_t@#1),
+    right mst_ar_req : (ar_chan_t@#1),
+    right mst_r_resp : (r_chan_t@#1)
+}
+
+proc axi_demux<aw_chan_t : type, 
+              w_chan_t : type, 
+              b_chan_t : type, 
+              ar_chan_t : type, 
+              r_chan_t : type, 
+              select_t : type
+              NoMstPorts : int>
+(
+    slv_ep: left slave_ch<w_chan_t, aw_chan_t, b_chan_t, ar_chan_t, r_chan_t, select_t>,
+    mst_ep_0: right master_ch<aw_chan_t, w_chan_t, b_chan_t, ar_chan_t, r_chan_t>,
+    mst_ep_1: right master_ch<aw_chan_t, w_chan_t, b_chan_t, ar_chan_t, r_chan_t>
+)
+// Write Translaction and read trannsaction to be implemented seperately (in different loops for now)
+{
+    chan aw_sr_le -- aw_sr_ri : spill_ch<aw_chan_t>;
+    chan w_sr_le -- w_sr_ri : spill_ch<w_chan_t>;
+    chan b_sr_le -- b_sr_ri : spill_ch<b_chan_t>;
+    chan ar_sr_le -- ar_sr_ri : spill_ch<ar_chan_t>;
+    chan r_sr_le -- r_sr_ri : spill_ch<r_chan_t>;
+    chan select_aw_le -- select_aw_ri : spill_ch<select_t>;
+    chan select_r_le -- select_r_ri : spill_ch<select_t>;
+    reg aw_in : aw_chan_t;
+
+
+    // Write Transaction'
+        // First we receive the write address
+        // and then we send the write address to the selected master
+        // Then we forward the acknowledgement back to the master without any delay (ready )
+        // Now we are ready for another address write transaction >?
+        // Ok there is a fifo of write requests, if that is not full, we can accept another write address
+        // If the master for this is not ready, we need to lock the address write channel so it doesnt get overwritten
+        // So in general address write channel is unlocked, however when there is a slave request and the master is not ready, 
+        // we need to lock the address write channel until the master is ready
+        // So the program for write transaction is somewhat like this
+        // 1. Receive the write transaction request if the write buffer is not full 
+        // 2. Push the request in the write buffer
+        // 3. if the master is ready send back the acknowledgement to the axi slave
+        // 4. Else lock the aw channel untill this requst can be served
+        // 5. If the master is ready unlock this channel ready to accept new address write transaction request
+
+
+
+        // Corresponding W channel transaction
+        // 1. if the w fifo is not empty and write response fifo is not full, we can send a valid w request to selected channel
+        // 2. If the selected master is ready to accept this transaction we let know the slave that we are ready to accept the w request
+        // 3. Pop from the fifo when the slave handshake has been handled
+
+
+        // Corresponding B channel transaction
+        // TBC: When not feeling sleepy
+
+// For aw_channel: 
+   //  1. We see if the w_fifo is full ? if not we can accept a new write address request
+   //  2a. If the selected master is ready to accept this transaction we let know the slave that we are ready to accept the w request
+        // Thereby not needing to register this value
+   // 2b. Else we register the aw request and wait for the master to be ready
+   //3. We send the acknowlegeemnt to the slave that we are ready to accept the write request
+   // This completes the aw channel transaction. Therefore we can keep recieving aw requests untill the fifo is full and each aw_req is ack
+
+        loop{ //AW Channel Transaction
+         /*1.*/   try _ = recv w_fifo_ep.full{
+                cycle 1
+            }
+            else{  // If the write fifo is not full, we can accept a new write address request
+        /*1*/   let aw_req = slv_ep.slv_req_aw >>
+                send w_fifo_ep.push(aw_req.select) >>
+                match aw_req.select{
+                    0 => {
+          /*2.a*/       try _ = recv mst_ep_0.aw_ready {
+                            send mst_ep_0.mst_aw_req(aw_req.data)
+                        }
+                        else {
+                            set aw_in := aw_req  >>
+                            let _ = recv mst_ep_0.aw_ready >>
+                            send mst_ep_0.mst_aw_req(*aw_in)
+                        } >>
+                  /*3*/ send slv_ep.aw_ready(1'd1)
+                    }
+                    1 => {
+            /*2.a*/     try _ = recv mst_ep_1.aw_ready {
+                            send mst_ep_1.mst_aw_req(aw_req.data)
+                        }
+              /*2.b*/   else {
+                            set aw_in := aw_req  >>
+                            let _ = recv mst_ep_1.aw_ready >>
+                            send mst_ep_1.mst_aw_req(*aw_in)
+                        } >>
+                    /*3*/ send slv_ep.aw_ready(1'd1)
+                        
+                    }
+                    _ => {
+                        // can keep doing the match
+                        cycle 1 // This is a dummy case, we can handle this later
+                    }
+                }
+            }
+        }
+
+
+}
