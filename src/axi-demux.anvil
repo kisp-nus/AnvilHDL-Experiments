@@ -70,16 +70,17 @@ proc axi_demux<aw_chan_t : type,
 
 
 
-        // Corresponding W channel transaction
-        // 1. if the w fifo is not empty and write response fifo is not full, we can send a valid w request to selected channel
-        // 2. If the selected master is ready to accept this transaction we let know the slave that we are ready to accept the w request
-        // 3. Pop from the fifo when the slave handshake has been handled
+// Corresponding W channel transaction
+        // 1. It seems like we can store the order of the write requests in a fifo
+        // 2. If the fifo is not empty and the write response fifo is not full
+        // 3. we can recv a valid w request from the slave and send it to the selected master (from fifo)
+        // 4. If the selected master is ready to accept this transaction we let know the slave
 
 
         // Corresponding B channel transaction
         // TBC: When not feeling sleepy
 
-// For aw_channel: 
+// For aw_channel Anvil Implementation: 
    //  1. We see if the w_fifo is full ? if not we can accept a new write address request
    //  2a. If the selected master is ready to accept this transaction we let know the slave that we are ready to accept the w request
         // Thereby not needing to register this value
@@ -87,44 +88,146 @@ proc axi_demux<aw_chan_t : type,
    //3. We send the acknowlegeemnt to the slave that we are ready to accept the write request
    // This completes the aw channel transaction. Therefore we can keep recieving aw requests untill the fifo is full and each aw_req is ack
 
-        loop{ //AW Channel Transaction
-         /*1.*/   try _ = recv w_fifo_ep.full{
+/* For W_channel:
+1a. check if the w_fifo is empty, if its empty do nothing
+1b.a If the w_fifo is not empty, check if the b_fifo is full, if its full do nothing
+1b.b. If the b_fifo is not full, we can pop a w request from the fifo
+2. wait for the w data request from the slave and then send it to the selected master
+// Does slave need to keep it constant till it recvs ready or for one cycle ? Ans : it is bypassed through the spill register
+In that case a better way to do this is actually abstract the spill register as a component with parametrized bypass that returns the response as soon
+as there is one to return (based on that parameter)
+
+So it would be like this
+
+loop1 :  Handles the slave aw channel requests bypass
+loop2 : The FSM that controls the aw channel transaction
+loop3 : Handles the slave w channel requests bypass
+loop4 : The FSM that controls the w channel transaction
+    
+*/
+
+
+    loop{//AW slv req bypass
+        let _ = recv aw_sr_le.rdy >>
+        send slv_ep.aw_ready(1'd1) >>
+        let aw_req = recv slv_ep.slv_req_aw >>
+        send aw_sr_le.req(aw_req) >>
+        cycle 1
+    }
+
+
+    loop{ //AW Channel Transaction To Do: add parametrized register by passing
+    /*1.*/  try _ = recv w_fifo_ep.full{
                 cycle 1
             }
-            else{  // If the write fifo is not full, we can accept a new write address request
-        /*1*/   let aw_req = slv_ep.slv_req_aw >>
-                send w_fifo_ep.push(aw_req.select) >>
-                match aw_req.select{
-                    0 => {
-          /*2.a*/       try _ = recv mst_ep_0.aw_ready {
-                            send mst_ep_0.mst_aw_req(aw_req.data)
-                        }
-                        else {
-                            set aw_in := aw_req  >>
-                            let _ = recv mst_ep_0.aw_ready >>
+            else{
+                try _ = recv aw_sr_le.rdy {
+                    send w_fifo_ep.push(aw_req.select) >>
+                    match aw_req.select{
+                        0 => {
+            /*2.a*/       let _ = recv mst_ep_0.aw_ready >>
+                            send aw_sr_le.rdy_in(1'd1) >>
+                            let aw_req = recv aw_sr_le.res >>
                             send mst_ep_0.mst_aw_req(*aw_in)
-                        } >>
-                  /*3*/ send slv_ep.aw_ready(1'd1)
-                    }
-                    1 => {
-            /*2.a*/     try _ = recv mst_ep_1.aw_ready {
-                            send mst_ep_1.mst_aw_req(aw_req.data)
-                        }
-              /*2.b*/   else {
-                            set aw_in := aw_req  >>
-                            let _ = recv mst_ep_1.aw_ready >>
+                        } 
+                        1 => {
+                /*2.a*/    let _ = recv mst_ep_1.aw_ready >>
+                            send aw_sr_le.rdy_in(1'd1) >>
+                            let aw_req = recv aw_sr_le.res >>
                             send mst_ep_1.mst_aw_req(*aw_in)
-                        } >>
-                    /*3*/ send slv_ep.aw_ready(1'd1)
-                        
-                    }
-                    _ => {
-                        // can keep doing the match
-                        cycle 1 // This is a dummy case, we can handle this later
-                    }
+                        }
+                        _ => {
+                            // can keep doing the match
+                            ()
+                        }
+                    }>> cycle 1
+                }
+                else {
+                    cycle 1
                 }
             }
         }
+
+        // Write Channel Transaction
+
+        loop{ // W slv req bypass
+            let _ = recv w_sr_le.rdy >>
+            send slv_ep.w_ready(1'd1) >>
+            let w_req = recv slv_ep.slv_req_w >>
+            send w_sr_le.req(w_req) >>
+            cycle 1
+        }
+        
+        loop{ // The FSM that controls the w channel transaction
+            try _ = recv w_fifo_ep.empty {
+                cycle 1
+            }
+            else {
+                try _ = recv b_fifo_ep.full {
+                    cycle 1
+                }
+                else { 
+                    let w_mst = recv w_fifo_ep.pop >>
+                    send b_fifo_ep.push(w_mst) >>
+                    match w_mst{
+                        0 =>{
+                            let _ = recv mst_ep_0.w_ready >>
+                            send w_sr_le.rdy_in(1'd1) >>
+                            let _ = recv w_sr_le.rdy >>
+                            let w_req = w_sr_le.res >>
+                            send mst_ep_0.mst_w_req(w_req)
+                        }
+                        1 => {
+                            let _ = recv mst_ep_1.w_ready >>
+                            send w_sr_le.rdy_in(1'd1) >>
+                            let _ = recv w_sr_le.rdy >>
+                            let w_req = w_sr_le.res >>
+                            send mst_ep_1.mst_w_req(w_req)
+                        }
+                        _ => {
+                            // can keep doing the match
+                            ()
+                        }
+                    } >>
+                    cycle 1
+                }
+            }
+        }
+// B channel Transaction
+    loop{// Master to slave
+        try _ = recv b_fifo_ep.empty {
+            cycle 1
+        }
+        else {
+            let b_mst = recv b_fifo_ep.pop >>
+            match b_mst {
+                0 => {
+                    let _ = recv b_sr_le.rdy >>
+                    let b_resp = recv mst_ep_0.b_resp >>
+                    send b_sr_le.req(b_resp)
+                }
+                1 => {
+                    let _ = recv b_sr_le.rdy >>
+                    let b_resp = recv mst_ep_1.b_resp >>
+                    send b_sr_le.req(b_resp)
+                }
+                _ => {
+                    // can keep doing the match
+                    ()
+                }
+            } >>
+            cycle 1
+        }
+    }
+
+    loop {
+        // slave gets the b response (spill register bypass)
+        let _ = recv slv_ep.b_ready >>
+        send b_sr_le.rdy_in(1'd1) >>
+        let b_resp = recv b_sr_le.res >>
+        send slv_ep.b_resp(b_resp) >>
+        cycle 1
+    }
 
 
 }
