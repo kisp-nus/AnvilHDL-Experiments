@@ -1,0 +1,57 @@
+
+// extern import "spill_register.sv"
+
+// extern-proc-def ::= proc $identifier [$params] (($identifier : (left | right) $identifier [$param-vals]) | ())
+//  extern($string-literal) 
+//  { { (clk_i($string-literal) | rst_ni($string-literal) | $identifier.$identifier($string-literal : $string-literal : $string-literal) ) ; } }
+
+// proc spill_reg <T : type, BYPASS : int> (right ep : spill_ch<T>)
+// {
+//     extern("spill_register") {
+//         (clk_i("clk_i") | rst_ni("rst_ni") | ep.req("valid_i" : "data_i") | ep.res("valid_o" : "ready_i" : "data_o"));
+//     }
+// }
+struct w_pack<T : type, S : int> {
+    data : T,
+    select : logic[S]
+}
+struct aw_pack<A : type, S : int> {
+    data : A,
+    select : logic[S]
+}
+type b_pack = logic[1];
+// Read Data Structs
+struct ar_pack<A : type, S : int> {
+    data : A,
+    select : logic[S]
+}
+struct r_pack<T : type> {    
+    data : T
+}
+chan spill_ch<T : type> {
+  left rdy : (logic[1]@#1),
+  right req : (T@#1), // @dyn - @#rdy sync pattern to say the other side can send it anytime, but this party is ready to recieve immediately
+  left res : (T@drain), // @f.drain - @dyn sync pattern to say there will be a valid but we dont care if the other side acks it
+  right drain : (logic[1]@#1) // @dyn - @res
+}
+chan slave_ch<T :type , A : type , select_t:int> {
+    left slv_req_aw : (aw_pack<A, select_t>@#1),
+    left slv_req_w  : (w_pack<T, select_t>@#1),
+    right slv_res_b : (b_pack@#1),
+    left slv_req_ar : (ar_pack<A, select_t>@#1),
+    right slv_res_r : (r_pack<T>@#1)
+}
+chan master_ch<T : type , A : type> {
+    right mst_aw_req : (T@#1),
+    right mst_w_req  : (A@#1),
+    left mst_b_resp  : (b_pack@#1),
+    right mst_ar_req : (A@#1),
+    right mst_r_resp : (r_pack<T>@#1)
+}
+
+proc spill_reg<T : type, BYPASS : int> (ep : right spill_ch<T>) {
+
+    loop {
+        cycle 1
+    }
+}

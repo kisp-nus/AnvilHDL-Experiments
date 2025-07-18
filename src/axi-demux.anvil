@@ -1,82 +1,39 @@
 
-import "common_cells.anvil"
+import "common_cells.anvilh"
 
-chan slave_ch<w_chan_t : type, 
-              aw_chan_t : type, 
-              b_chan_t : type, 
-              ar_chan_t : type, 
-              r_chan_t : type, 
-              select_t : type> 
-{
-    left slv_req_aw : (aw_chan_t@#1),
-    left slv_req_w  : (w_chan_t@#1),
-    right slv_res_b : (b_chan_t@#1),
-    left slv_req_ar : (ar_chan_t@#1),
-    right slv_res_r : (r_chan_t@#1),
-    left slv_w_select : (select_t@#1),
-    left slv_r_select : (select_t@#1)
-}
-chan master_ch<aw_chan_t : type, 
-              w_chan_t : type, 
-              b_chan_t : type, 
-              ar_chan_t : type, 
-              r_chan_t : type> {
-    right mst_aw_req : (aw_chan_t@#1),
-    right mst_w_req  : (w_chan_t@#1),
-    left mst_b_resp  : (b_chan_t@#1),
-    right mst_ar_req : (ar_chan_t@#1),
-    right mst_r_resp : (r_chan_t@#1)
-}
 
-proc axi_demux<aw_chan_t : type, 
-              w_chan_t : type, 
-              b_chan_t : type, 
-              ar_chan_t : type, 
-              r_chan_t : type, 
-              select_t : type
+proc axi_demux<
+              T : type,
+              A : type,
+              select_t : int,
+              AW_BYPASS : int,
+              W_BYPASS : int,
+              B_BYPASS : int,
+              AR_BYPASS : int,
+              R_BYPASS : int,
               NoMstPorts : int>
 (
-    slv_ep: left slave_ch<w_chan_t, aw_chan_t, b_chan_t, ar_chan_t, r_chan_t, select_t>,
-    mst_ep_0: right master_ch<aw_chan_t, w_chan_t, b_chan_t, ar_chan_t, r_chan_t>,
-    mst_ep_1: right master_ch<aw_chan_t, w_chan_t, b_chan_t, ar_chan_t, r_chan_t>
+    slv_ep: left slave_ch<T, A, select_t>,
+    mst_ep_0: right master_ch<T, A>,
+    mst_ep_1: right master_ch<T, A>
 )
 // Write Translaction and read trannsaction to be implemented seperately (in different loops for now)
 {
-    chan aw_sr_le -- aw_sr_ri : spill_ch<aw_chan_t>;
-    chan w_sr_le -- w_sr_ri : spill_ch<w_chan_t>;
-    chan b_sr_le -- b_sr_ri : spill_ch<b_chan_t>;
-    chan ar_sr_le -- ar_sr_ri : spill_ch<ar_chan_t>;
-    chan r_sr_le -- r_sr_ri : spill_ch<r_chan_t>;
-    chan select_aw_le -- select_aw_ri : spill_ch<select_t>;
-    chan select_r_le -- select_r_ri : spill_ch<select_t>;
+// Spill registers for the channels
+    
+    chan aw_sr_le -- aw_sr_ri : spill_ch<aw_pack<A, select_t> >;
+    chan w_sr_le -- w_sr_ri : spill_ch<w_pack<T, select_t> >;
+    chan b_sr_le -- b_sr_ri : spill_ch<b_pack>;
+    chan ar_sr_le -- ar_sr_ri : spill_ch<ar_pack<A, select_t> >;
+    chan r_sr_le -- r_sr_ri : spill_ch<r_pack<T> >;
+    spawn spill_reg<aw_pack<A, select_t> , AW_BYPASS>(aw_sr_ri);
+    spawn spill_reg<w_pack<T, select_t> , W_BYPASS>(w_sr_ri);
+    spawn spill_reg<b_pack, B_BYPASS>(b_sr_ri);
+    spawn spill_reg<ar_pack<A, select_t>, AR_BYPASS>(ar_sr_ri);
+    spawn spill_reg<r_pack<T>, R_BYPASS>(r_sr_ri);
 
-/* The write transaction is simple as follows:
-Loop 1. The slave sends a aw request, we accept it if the spill register is ready to accept a request.
-    - Then the req is forwarded to the spill register
 
-Loop 2. The AW transaction is done if the w_fifo is not full
-    - If the w_fifo is full, we wait until it is not full before proceeding.
-   - If the w_fifo is not full, we get a valid aw request from the spill register.
-   - we match the select value to determine which master to send the request to.
-    - The master processes the request
-    - After master process accepts the request, we ask the spill register to immediately drain the value
-    - we push the selected master id into the w_fifo
-
-Loop 3. The Write data transaction bypass from slave
-Loop4. The w data is sent to the fifo if the w_fifo is not empty and the read response is not full
-    - If the w_fifo is empty, we wait until it is not empty before proceeding.
-    - If the b_fifo is full, we wait until it is not full before proceeding.
-    - We pop the w_fifo to get the master id we get the w request (as res) from the spill register.
-    - Then we send the w request to the selected master , upon completion of this handshake, we ask the spill register to drain the value.
-
-Loop 5. The b channel bypass transaction:
-    - we get the master id from the b_fifo
-    - We match the master id to get the b response from the selected master.
-    - We send the b response to the spill register.
-
-Loop 6. The spill register sends the b response to the slave, upon handshake we drain the value
-*/
-
+//---------------------------------------------Write Transaction------------------------------------------------------------
     loop{//AW slv req bypass
         try _ = recv aw_sr_le.rdy{
             let aw_req = recv slv_ep.slv_req_aw >>
@@ -96,22 +53,21 @@ Loop 6. The spill register sends the b response to the slave, upon handshake we 
                   match aw_req.select{
                     0 => {
                             send mst_ep_0.mst_aw_req(aw_req.data) >>
-                            send aw_sr_le.drain(1'd1) //
-                    }
+                            send aw_sr_le.spill(1'd1) //
+                    },
                     1 => {
                             send mst_ep_1.mst_aw_req(aw_req.data) >>
-                            send aw_sr_le.drain(1'd1) //sync pattern to say ready to accept after previous drain
-                    }
+                            send aw_sr_le.spill(1'd1) //sync pattern to say ready to accept after previous spill
+                    },
                     _ => {
                             // can keep doing the match
                             ()
                         }
                   }>> cycle 1
-                }
             }
         }
 
-        // Write Channel Transaction
+        // W Channel Transaction
 
         loop{//W slv req bypass
             try _ = recv w_sr_le.rdy{
@@ -136,13 +92,13 @@ Loop 6. The spill register sends the b response to the slave, upon handshake we 
                         0 =>{
                             let w_req = recv w_sr_le.res >>
                             send mst_ep_0.mst_w_req(w_req) >>
-                            send w_sr_le.drain(1'd1)
-                        }
+                            send w_sr_le.spill(1'd1)
+                        },
                         1 => {
                             let w_req = recv w_sr_le.res >>
                             send mst_ep_1.mst_w_req(w_req) >>
-                            send w_sr_le.drain(1'd1)
-                        }
+                            send w_sr_le.spill(1'd1)
+                        },
                         _ => {
                             // can keep doing the match
                             ()
@@ -165,15 +121,16 @@ Loop 6. The spill register sends the b response to the slave, upon handshake we 
                     0 => {
                         let b = recv mst_ep_0.mst_b_resp >>
                         send b_sr_le.req(b)
-                    }
+                    },
                     1 => {
                         let b = recv mst_ep_1.mst_b_resp >>
                         send b_sr_le.req(b)
-                    }
+                    },
                     _ => {
                         // can keep doing the match
                         ()
                     }
+                }
             } >>
             cycle 1
         }
@@ -183,8 +140,76 @@ Loop 6. The spill register sends the b response to the slave, upon handshake we 
         // slave gets the b response (spill register bypass)
         let b_resp = recv b_sr_le.res >>
         send slv_ep.slv_res_b(b_resp) >>
-        send b_sr_le.drain(1'd1) >> //sync pattern to say ready to drain the value
+        send b_sr_le.spill(1'd1) >> //sync pattern to say ready to spill the value
+        cycle 1
+    }
+// ----------------------------------------------Read Transaction------------------------------------------------------------
+
+    loop{//AR slv req bypass
+        try _ = recv ar_sr_le.rdy{
+            let ar_req = recv slv_ep.slv_req_ar >>
+            send ar_sr_le.req(ar_req)//To Do: add syncpattern as anytime immmediately after a message
+        } >>
         cycle 1
     }
 
+    loop{ //AR Channel Transaction To Do: add parametrized register by passing
+    /*1.*/  try _ = recv r_fifo_ep.full{
+                cycle 1
+            }
+            else{
+                  let ar_req = recv ar_sr_le.res >> //sync pattern to say ready to recieve immediately
+                  send r_fifo_ep.push(ar_req.select) >>
+                  match ar_req.select{
+                    0 => {
+                            send mst_ep_0.mst_ar_req(ar_req.data) >>
+                            send ar_sr_le.spill(1'd1) //
+                    },
+                    1 => {
+                            send mst_ep_1.mst_ar_req(ar_req.data) >>
+                            send ar_sr_le.spill(1'd1) //sync pattern to say ready to accept after previous spill
+                    },
+                    _ => {
+                            // can keep doing the match
+                            ()
+                        }
+                  }>> cycle 1
+            }
+     }
+
+    // R Data Transaction
+    loop{    
+        try _ = recv r_fifo_ep.empty {
+            cycle 1
+        }
+        else {
+            let r_mst = recv r_fifo_ep.pop >>
+            match r_mst {
+                0 => {
+                        let _ = recv r_sr_le.rdy >>
+                        let r_res = recv mst_ep_0.mst_r_resp >>
+                        send r_sr_le.req(r_res)
+                },
+                1 => {
+                        let _ = recv r_sr_le.rdy >>
+                        let r_res = recv mst_ep_1.mst_r_resp >>
+                        send r_sr_le.req(r_res)
+                },
+                _ => {
+                        // can keep doing the match
+                        ()
+                }
+            } >>
+            cycle 1
+        }
+    }
+
+    loop {
+        let resp = recv r_sr_le.res >>
+        send slv_ep.slv_res_r(resp) >>
+        send r_sr_le.spill(1'd1) >>
+        cycle 1
+    }
+
+// ------------------------------------End of the axi demux------------------------------------------------
 }
