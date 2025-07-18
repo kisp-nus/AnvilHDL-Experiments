@@ -31,8 +31,8 @@ struct r_pack<T : type> {
 chan spill_ch<T : type> {
   left rdy : (logic[1]@#1),
   right req : (T@#1), // @dyn - @#rdy sync pattern to say the other side can send it anytime, but this party is ready to recieve immediately
-  left res : (T@drain), // @f.drain - @dyn sync pattern to say there will be a valid but we dont care if the other side acks it
-  right drain : (logic[1]@#1) // @dyn - @res
+  left res : (T@spill), // @f.drain - @dyn sync pattern to say there will be a valid but we dont care if the other side acks it
+  right spill : (logic[1]@#1) // @dyn - @res
 }
 chan slave_ch<T :type , A : type , select_t:int> {
     left slv_req_aw : (aw_pack<A, select_t>@#1),
@@ -46,12 +46,26 @@ chan master_ch<T : type , A : type> {
     right mst_w_req  : (A@#1),
     left mst_b_resp  : (b_pack@#1),
     right mst_ar_req : (A@#1),
-    right mst_r_resp : (r_pack<T>@#1)
+    left mst_r_resp : (r_pack<T>@#1)
 }
 
 proc spill_reg<T : type, BYPASS : int> (ep : right spill_ch<T>) {
 
     loop {
+        cycle 1
+    }
+}
+
+chan fifo_ch<T : type> {
+    left push : (logic[1]@#1),
+    right pop : (T@#1),
+    right full : (logic[1]@#1),
+    right empty : (logic[1]@#1)
+}
+
+proc fifo<D: type, S: type>(ep : left fifo_ch<S>) {
+
+    loop{
         cycle 1
     }
 }

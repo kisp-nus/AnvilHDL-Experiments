@@ -11,11 +11,12 @@ proc axi_demux<
               B_BYPASS : int,
               AR_BYPASS : int,
               R_BYPASS : int,
-              NoMstPorts : int>
+              NoMstPorts : int,
+              D : type>
 (
     slv_ep: left slave_ch<T, A, select_t>,
-    mst_ep_0: right master_ch<T, A>,
-    mst_ep_1: right master_ch<T, A>
+    mst_ep_0: left master_ch<T, A>,
+    mst_ep_1: left master_ch<T, A>
 )
 // Write Translaction and read trannsaction to be implemented seperately (in different loops for now)
 {
@@ -26,6 +27,12 @@ proc axi_demux<
     chan b_sr_le -- b_sr_ri : spill_ch<b_pack>;
     chan ar_sr_le -- ar_sr_ri : spill_ch<ar_pack<A, select_t> >;
     chan r_sr_le -- r_sr_ri : spill_ch<r_pack<T> >;
+    chan w_fifo_le -- w_fifo_ep : fifo_ch<logic[select_t]>;
+    chan b_fifo_le -- b_fifo_ep : fifo_ch<logic[select_t]>;
+    chan r_fifo_le -- r_fifo_ep : fifo_ch<logic[select_t]>;
+    spawn fifo< D, logic[select_t] >(w_fifo_le);
+    spawn fifo< D, logic[select_t] >(b_fifo_le);
+    spawn fifo< D, logic[select_t] >(r_fifo_le);
     spawn spill_reg<aw_pack<A, select_t> , AW_BYPASS>(aw_sr_ri);
     spawn spill_reg<w_pack<T, select_t> , W_BYPASS>(w_sr_ri);
     spawn spill_reg<b_pack, B_BYPASS>(b_sr_ri);
@@ -213,3 +220,5 @@ proc axi_demux<
 
 // ------------------------------------End of the axi demux------------------------------------------------
 }
+
+
