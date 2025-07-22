@@ -63,10 +63,7 @@ struct sub_bytes_out_pack {
     error : logic
 }
 
-struct data_in_pack{
-    data : logic[4][4][8],
-    op : ciph_op_e
-}
+
 
 chan shift_rows_ch{
     left req : (data_in_pack@#1) @#1 - @#1,
@@ -90,8 +87,8 @@ chan aes_core_ch {
 }
 
 chan sub_bytes_ch {
-    left req : (sub_bytes_in_pack@#1) @#1 - @dyn,
-    right res : (sub_bytes_out_pack@#1)
+    left req : (data_in_pack@#1) @#1 - @#1,
+    right res : (logic[4][4][8]@#1) @#req - @#req
 }
 
 // chan aes_key_expand_ch {
