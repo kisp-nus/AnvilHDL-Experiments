@@ -1,0 +1,18 @@
+
+import "aes_pkg.anvilh"
+
+proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch){
+    loop{
+        let data_in = recv ep.req >>
+        // do 10 
+        cycle 1
+
+    }
+
+    loop {
+        send entr_ep(1'd1) >>
+        let entropy = recv entr_ep.res >>
+        cycle 1
+    }
+
+}

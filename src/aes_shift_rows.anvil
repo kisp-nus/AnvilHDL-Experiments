@@ -1,25 +1,4 @@
-enum ciph_op_e{
-    NOP,
-    CIPH_FWD,
-    CIPH_INV,
-    NOP
-}
-
-
-struct data_in_pack{
-    data : logic[4][4][8],
-    op : ciph_op_e
-}
-
-
-chan shift_rows_ch{
-    left req : (data_in_pack@#1) @#1 - @#1,
-    right res : (logic[4][4][8]@#1) @#req - @#req
-}
-
-func circ_byte_shift(data, shift){
-    2'h4// to be~ implemented
-}
+import "anvil_pkg.anvilh"
 
 proc aes_shift_rows(ep : left shift_rows_ch) {
     loop{

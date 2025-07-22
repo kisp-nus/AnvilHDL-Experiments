@@ -1,0 +1,88 @@
+import "aes_pkg.anvilh"
+
+struct mix_column_in_pack{
+    data : logic[4][8],
+    op : ciph_op_e
+}
+chan mix_column_ch {
+    left req : (mix_column_in_pack@#1) @#1 - @#1,
+    right res : (logic[4][8]@#1) @#req - @#req
+}
+proc mix_single_columns(ep : left mix_column_ch){
+    let inp = recv ep.req >>
+    let data = inp.data;
+    let op_i = inp.op;
+
+    let x0 = data[0]^data[3];
+    let x1 = data[3]^data[2];
+    let x2 = data[2]^data[1];
+    let x3 = data[1]^data[0];
+    
+    let x_mult2_0 = call mul2(x0);
+    let x_mult2_1 = call mul2(x1);
+    let x_mult2_2 = call mul2(x2);
+    let x_mult2_3 = call mul2(x3);
+
+    let y_pre_0 = data[3]^data[1];
+    let y_pre_1 = data[2]^data[0];
+
+    let y_0 = call mul4(y_pre_0);
+    let y_1 = call mul4(y_pre_1);
+
+
+    let y2_pre = y_0^y_1;
+    let y2 = call mul2(y2_pre);
+
+
+    let z_0 = y2^y_0;
+    let z_1 = y2^y_1;
+
+    let z_muxed_0 = match op_i {
+        ciph_op_e::CIPH_FWD => 8'd0,
+        ciph_op_e::CIPH_INV => z_0,
+        _ => 8'd0
+    };
+
+    let z_muxed_1 = match op_i {
+        ciph_op_e::CIPH_FWD => 8'd0,
+        ciph_op_e::CIPH_INV => z_1,
+        _ => 8'd0
+    };
+
+    let data_o_1 = data[1]^x_mult2_3^x_1^z_muxed_1;
+    let data_o_2 = data[0]^x_mult2_2^x_1^z_muxed_0;
+    let data_o_3 = data[3]^x_mult2_1^x_3^z_muxed_1;
+    let data_o_4 = data[2]^x_mult2_0^x_3^z_muxed_0;
+
+    let data_out = #{data_o_4, data_o_3, data_o_2, data_o_1};
+    send ep.res(data_out) >>
+    cycle 1
+
+}
+
+proc aes_mix_columns (ep : left mix_column_ch) {
+    chan mcle0 -- mcri0 : mix_column_ch;
+    spawn mix_single_columns(mcle0);
+    chan mcle1 -- mcri1 : mix_column_ch;
+    spawn mix_single_columns(mcle1);
+    chan mcle2 -- mcri2 : mix_column_ch;
+    spawn mix_single_columns(mcle2);
+    chan mcle3 -- mcri3 : mix_column_ch;
+    spawn mix_single_columns(mcle3);
+
+    loop{
+        let data_in = recv ep.req >>
+        let data_i_transposed = call transpose(data_in.data);
+        send mcri0.req(data_i_transposed[0]) >>
+        let row_1 = recv mcri0.res >>
+        send mcri1.req(data_i_transposed[1]) >>
+        let row_2 = recv mcri1.res >>
+        send mcri2.req(data_i_transposed[2]) >>
+        let row_3 = recv mcri2.res >>
+        send mcri3.req(data_i_transposed[3]) >>
+        let row_4 = recv mcri3.res >>
+        let data_out = #{row_4, row_3, row_2, row_1};
+        send ep.res(data_out) >>
+        cycle 1
+    }
+}
