@@ -50,10 +50,10 @@ proc mix_single_columns(ep : left mix_column_ch){
             _ => 8'd0
         };
 
-        let data_o_1 = data[1]^x_mult2_3^x_1^z_muxed_1;
-        let data_o_2 = data[0]^x_mult2_2^x_1^z_muxed_0;
-        let data_o_3 = data[3]^x_mult2_1^x_3^z_muxed_1;
-        let data_o_4 = data[2]^x_mult2_0^x_3^z_muxed_0;
+        let data_o_1 = data[1]^x_mult2_3^x1^z_muxed_1;
+        let data_o_2 = data[0]^x_mult2_2^x1^z_muxed_0;
+        let data_o_3 = data[3]^x_mult2_1^x3^z_muxed_1;
+        let data_o_4 = data[2]^x_mult2_0^x3^z_muxed_0;
 
         let data_out = #{data_o_4, data_o_3, data_o_2, data_o_1};
         send ep.res(data_out) >>
