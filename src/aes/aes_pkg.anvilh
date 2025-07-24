@@ -1,5 +1,116 @@
-import "aes_pkg.anvilh"
+enum ciph_op_e{
+    NOP1,
+    CIPH_FWD,
+    CIPH_INV,
+    NOP2
+}
 
+enum key_len_e {
+    NOP1,
+    KEY_LEN_128,
+    KEY_LEN_192,
+    NOP2,
+    KEY_LEN_256,
+    NOP3
+}
+
+enum sp2v_e {
+    NOP1,
+    NOP2,
+    NOP3,
+    SP2V_HIGH,
+    SP2V_LOW,
+    NOP4
+}
+
+struct aes_key_expand_in_pack {
+    clear : logic,
+    key : logic[8][32],
+    op : ciph_op_e,
+    round : logic[4],
+    key_len : key_len_e
+}
+
+struct aes_key_expand_out_pack {
+    key : logic[8][32],
+    error : logic
+}
+struct aes_core_in_pack {
+    state_init_i : logic[4][4][8],
+    key_init_i : logic[8][32],
+    cfg_valid_i : logic,
+    op_i : ciph_op_e,
+    key_len_i : key_len_e,
+    crypt_i : sp2v_e,
+    dec_key_gen_i : sp2v_e,
+    prng_reseed_i : logic,
+    key_clear_i : logic,
+    data_out_clear_i : logic,
+    alert_fatal_i : logic,
+    prd_clearing_state_i : logic[4][4][8],
+    prd_clearing_key_i : logic[8][32],
+    force_masks_i : logic
+        
+}
+
+
+struct aes_core_out_pack {  
+    state_o : logic[4][4][8],
+    data_in_mask_o : logic[4][4][8],
+    alert_o : logic,
+    data_out_clear_o : logic,
+    key_clear_o : logic,
+    prng_reseed_o : logic,
+    dec_key_gen_o : sp2v_e,
+    crypt_o : sp2v_e
+}
+
+struct sub_bytes_in_pack {
+    data : logic[4][4][8],
+    op : ciph_op_e
+}
+
+struct sub_bytes_out_pack {
+    data : logic[4][4][8],
+    error : logic
+}
+
+
+chan aes_key_expand_ch{
+    left req : (aes_key_expand_in_pack@#1),
+    right res : (aes_key_expand_out_pack@#1)
+}
+
+chan shift_rows_ch{
+    left req : (data_in_pack@#1) @#1 - @#1,
+    right res : (logic[4][4][8]@#1) @#req - @#req
+}
+
+chan mix_column_ch{
+    left req : (data_in_pack@#1) @#1 - @#1,
+    right res : (logic[4][4][8]@#1) @#req - @#req
+}
+
+
+chan entropy_ch <EntropyWidth : int> {
+    left req : (logic@#1),
+    right res : (logic[EntropyWidth]@#1) @#req - @#req
+}
+
+chan aes_core_ch {
+    left req : (aes_core_in_pack@#1),
+    right res : (aes_core_out_pack@#1)
+}
+
+chan sub_bytes_ch {
+    left req : (data_in_pack@#1) @#1 - @#1,
+    right res : (logic[4][4][8]@#1) @#req - @#req
+}
+
+// chan aes_key_expand_ch {
+//     left req : 
+    
+// }
 struct sbox_in{
     data : logic[8],
     op : ciph_op_e
@@ -8,6 +119,44 @@ chan sbox_ch {
     left req : (sbox_in@#1) @#1 - @#1,
     right res : (logic[8]@#1) @#1 - @#1
 }
+
+
+func circ_byte_shift(data, shift){
+    match shift {
+        2'h0 => data,
+        2'h1 => #{data[16+:8], data[8+:8], data[0+:8], data[24+:8]},
+        2'h2 => #{data[8+:8], data[0+:8], data[24+:8], data[16+:8]},
+        2'h3 => #{data[0+:8], data[24+:8], data[16+:8], data[8+:8]},
+        _ => data
+    }
+}
+func div2(data){
+    #{data[7], data[6], data[5], data[4]^data[0], data[3]^data[0], data[2], data[1]^data[0], data[0]}
+}
+struct data_in_pack{
+    data : logic[4][4][8],
+    op : ciph_op_e
+}
+
+
+func transpose(data){
+    let row_1_t = #{data[0][3], data[0][2], data[0][1], data[0][0]};
+    let row_2_t = #{data[1][3], data[1][2], data[1][1], data[1][0]};
+    let row_3_t = #{data[2][3], data[2][2], data[2][1], data[2][0]};
+    let row_4_t = #{data[3][3], data[3][2], data[3][1], data[3][0]};
+    #{row_4_t, row_3_t, row_2_t, row_1_t}
+}
+
+func mul2(data){
+    #{data[6], data[5],data[4], data[3]^data[7], data[2]^data[7],data[1], data[0]^data[7], data[7]}
+}
+
+func mul4(data){
+    let data_mult2 = call mul2(data);
+    call mul2(data_mult2)
+}
+
+
 proc sbox(ep : left sbox_ch){
     loop{
     let sbox_fwd = #{ 
@@ -115,124 +264,6 @@ proc sbox(ep : left sbox_ch){
             ciph_op_e::CIPH_INV => sbox_inv[data_in.data],
             _ => sbox_fwd[data_in.data]
         };
-        send ep.res(data_out) >>
-        cycle 1
-    }
-}
-
-
-func use_sbox(data_in){
-    // generate(i : 0, 3, 1){
-    //     generate(j : 0, 3, 1){
-    //         send sri.req(data_in[i][j]) >>
-    //         let data_out = recv sli.res >>
-    //     }
-    // } To do : make this more convenient
-    let d00 = sbox_in::{data = data_in.data[0][0]; op = data_in.op};
-    send sri_0_0.req(d00) >>
-    let data_o_0_0 = recv sri_0_0.res >>
-    let d01 = sbox_in::{data = data_in.data[0][1]; op = data_in.op};
-    send sri_0_1.req(d01) >>
-    let data_o_0_1 = recv sri_0_1.res >>
-    let d02 = sbox_in::{data = data_in.data[0][2]; op = data_in.op};
-    send sri_0_2.req(d02) >>
-    let data_o_0_2 = recv sri_0_2.res >>
-    let d03 = sbox_in::{data = data_in.data[0][3]; op = data_in.op};
-    send sri_0_3.req(d03) >>
-    let data_o_0_3 = recv sri_0_3.res >>
-
-    let d10 = sbox_in::{data = data_in.data[1][0]; op = data_in.op};
-    send sri_1_0.req(d10) >>
-    let data_o_1_0 = recv sri_1_0.res >>
-
-    let d11 = sbox_in::{data = data_in.data[1][1]; op = data_in.op};
-    send sri_1_1.req(d11) >>
-    let data_o_1_1 = recv sri_1_1.res >>
-    let d12 = sbox_in::{data = data_in.data[1][2]; op = data_in.op};
-    send sri_1_2.req(d12) >>
-    let data_o_1_2 = recv sri_1_2.res >>
-    let d13 = sbox_in::{data = data_in.data[1][3]; op = data_in.op};
-    send sri_1_3.req(d13) >>
-    let data_o_1_3 = recv sri_1_3.res >>
-
-    let d20 = sbox_in::{data = data_in.data[2][0]; op = data_in.op};
-    send sri_2_0.req(d20) >>
-    let data_o_2_0 = recv sri_2_0.res >>
-
-    let d21 = sbox_in::{data = data_in.data[2][1]; op = data_in.op};
-    send sri_2_1.req(d21) >>
-    let data_o_2_1 = recv sri_2_1.res >>
-
-    let d22 = sbox_in::{data = data_in.data[2][2]; op = data_in.op};
-    send sri_2_2.req(d22) >>
-    let data_o_2_2 = recv sri_2_2.res >>
-
-    let d23 = sbox_in::{data = data_in.data[2][3]; op = data_in.op};
-    send sri_2_3.req(d23) >>
-    let data_o_2_3 = recv sri_2_3.res >>
-
-    let d30 = sbox_in::{data = data_in.data[3][0]; op = data_in.op};
-    send sri_3_0.req(d30) >>
-    let data_o_3_0 = recv sri_3_0.res >>
-
-    let d31 = sbox_in::{data = data_in.data[3][1]; op = data_in.op};
-    send sri_3_1.req(d31) >>
-    let data_o_3_1 = recv sri_3_1.res >>
-    let d32 = sbox_in::{data = data_in.data[3][2]; op = data_in.op};
-    send sri_3_2.req(d32) >>
-    let data_o_3_2 = recv sri_3_2.res >>
-    let d33 = sbox_in::{data = data_in.data[3][3]; op = data_in.op};
-    send sri_3_3.req(d33) >>
-    let data_o_3_3 = recv sri_3_3.res >>
-
-    #{ 
-        #{data_o_0_0, data_o_0_1, data_o_0_2, data_o_0_3},
-        #{data_o_1_0, data_o_1_1, data_o_1_2, data_o_1_3},
-        #{data_o_2_0, data_o_2_1, data_o_2_2, data_o_2_3},
-        #{data_o_3_0, data_o_3_1, data_o_3_2, data_o_3_3}
-    }//check this orientation
-}   
-
-proc aes_sub_bytes(ep : left sub_bytes_ch){
-    chan sli_0_0 -- sri_0_0 : sbox_ch;
-    spawn sbox(sli_0_0);
-    chan sli_0_1 -- sri_0_1 : sbox_ch;
-    spawn sbox(sli_0_1);
-    chan sli_0_2 -- sri_0_2 : sbox_ch;
-    spawn sbox(sli_0_2);
-    chan sli_0_3 -- sri_0_3 : sbox_ch;
-    spawn sbox(sli_0_3);
-
-    chan sli_1_0 -- sri_1_0 : sbox_ch;
-    spawn sbox(sli_1_0);
-    chan sli_1_1 -- sri_1_1 : sbox_ch;
-    spawn sbox(sli_1_1);
-    chan sli_1_2 -- sri_1_2 : sbox_ch;
-    spawn sbox(sli_1_2);
-    chan sli_1_3 -- sri_1_3 : sbox_ch;
-    spawn sbox(sli_1_3);
-
-    chan sli_2_0 -- sri_2_0 : sbox_ch;
-    spawn sbox(sli_2_0);
-    chan sli_2_1 -- sri_2_1 : sbox_ch;
-    spawn sbox(sli_2_1);
-    chan sli_2_2 -- sri_2_2 : sbox_ch;
-    spawn sbox(sli_2_2);
-    chan sli_2_3 -- sri_2_3 : sbox_ch;
-    spawn sbox(sli_2_3);
-
-    chan sli_3_0 -- sri_3_0 : sbox_ch;
-    spawn sbox(sli_3_0);
-    chan sli_3_1 -- sri_3_1 : sbox_ch;
-    spawn sbox(sli_3_1);
-    chan sli_3_2 -- sri_3_2 : sbox_ch;
-    spawn sbox(sli_3_2);
-    chan sli_3_3 -- sri_3_3 : sbox_ch;
-    spawn sbox(sli_3_3);
-    
-    loop{
-        let data_in = recv ep.req >>
-        let data_out = call use_sbox(data_in)>>
         send ep.res(data_out) >>
         cycle 1
     }

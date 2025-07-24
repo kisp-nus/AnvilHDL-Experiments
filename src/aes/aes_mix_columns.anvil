@@ -8,6 +8,7 @@ chan mix_column_ch {
     left req : (mix_column_in_pack@#1) @#1 - @#1,
     right res : (logic[4][8]@#1) @#req - @#req
 }
+
 proc mix_single_columns(ep : left mix_column_ch){
     loop {
         let inp = recv ep.req >>
