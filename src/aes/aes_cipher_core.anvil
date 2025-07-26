@@ -1,16 +1,78 @@
 
 import "aes_pkg.anvilh"
+import "aes_key_expand.anvil"
+import "aes_shift_rows.anvil"
+import "aes_mix_columns.anvil"
+import "aes_sub_bytes.anvil"
 
-proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch){
+proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
+    chan key_le -- key_ri : aes_key_expand_ch;
+    chan shift_rows_le -- shift_rows_ri : shift_rows_ch;
+    chan mix_col_le -- mix_col_ri : mix_column_ch;
+    chan sub_bytes_le -- sub_bytes_ri : sub_bytes_ch;
+    spawn aes_key_expand(key_le);
+    spawn aes_shift_rows(shift_rows_le);
+    spawn aes_mix_columns(mix_col_le);
+    spawn aes_sub_bytes(sub_bytes_le);
+
+    reg cipher_state : logic[4][4][8];
+    reg key : logic[8][32];
+    reg dec_key : logic[8][32];
+
     loop{
+        // -------------Cycle 0 (Initialization)----------------
         let data_in = recv ep.req >>
-        // do 10 
+        let ctrl_in = recv ep.ctrl >>
+        set cipher_state := data_in.state_init_i;
+        set key := data_in.key_init_i >>
+        
+        // -------------Cycle 1-9 (Rounds)----------------
+        generate_seq (i : 1, 9,1){
+            send key_ri.req(aes_key_expand_in_pack::{clear=1'd0; key = *key; op = ctrl_in.op_i; round = i; key_len = ctrl_in.key_len_i}) >>
+            let key_out_pack = recv key_ri.res >>
+            let key_out = key_out_pack.key; // do checks on error of the out pack
+
+            send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+            let sub_bytes_out = recv sub_bytes_ri.res >>
+            send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
+            let shift_rows_out = recv shift_rows_ri.res >>
+            send mix_col_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
+            let mix_col_out = recv mix_col_ri.res >>
+
+            set cipher_state := mix_col_out^key_out;
+            set key := key_out
+        }>>
+
+        // -------------Cycle 10 (Final Round)----------------
+
+        send key_ri.req(aes_key_expand_in_pack::{clear=1'd0; key = *key; op = ctrl_in.op_i; round = 10; key_len = ctrl_in.key_len_i}) >>
+        let key_out_pack = recv key_ri.res >>
+        let key_out = key_out_pack.key; // do checks on error of the out pack
+
+        send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+        let sub_bytes_out = recv sub_bytes_ri.res >>
+        send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
+        let shift_rows_out = recv shift_rows_ri.res >>
+        set cipher_state := shift_rows_out^key_out;
+        set dec_key := key_out >>
+        // -------------Cycle 11 (Output)----------------
+        send ep.res(aes_core_out_pack::{state_o = *cipher_state;
+                                        data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            #{8'd0, 8'd0,8'd0, 8'd0}};
+                                        alert_o = 1'd0; //To:Do fix this
+                                        data_out_clear_o = ctrl_in.data_out_clear_i;
+                                        key_clear_o = ctrl_in.key_clear_i;
+                                        prng_reseed_o = ctrl_in.prng_reseed_i;
+                                        dec_key_gen_o = ctrl_in.dec_key_gen_i;
+                                        crypt_o = ctrl_in.crypt_i}) >>
         cycle 1
 
     }
 
     loop {
-        send entr_ep(1'd1) >>
+        send entr_ep.req(1'd1) >>
         let entropy = recv entr_ep.res >>
         cycle 1
     }
