@@ -20,54 +20,119 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
     reg dec_key : logic[8][32];
 
     loop{
-        // -------------Cycle 0 (Initialization)----------------
-        let data_in = recv ep.req >>
-        let ctrl_in = recv ep.ctrl >>
-        set cipher_state := data_in.state_init_i;
-        set key := data_in.key_init_i >>
-        
-        // -------------Cycle 1-9 (Rounds)----------------
-        generate_seq (i : 1, 9,1){
-            send key_ri.req(aes_key_expand_in_pack::{clear=1'd0; key = *key; op = ctrl_in.op_i; round = i; key_len = ctrl_in.key_len_i}) >>
-            let key_out_pack = recv key_ri.res >>
-            let key_out = key_out_pack.key; // do checks on error of the out pack
+            let data_in = recv ep.req >>
+            let ctrl_in = recv ep.ctrl >>
+
+
+            // -------------Cycle 0 (Initialization)----------------
+            set cipher_state := data_in.state_init_i;
+            set key := data_in.key_init_i; // do checks on error of the out pack
+
+
+            match ctrl_in.op_i {
+            ciph_op_e::CIPH_FWD => {
+
+            //----------------- Cycle 1 Round 0----------------
+            send key_ri.req(aes_key_expand_in_pack::{clear=1'd1; key = data_in.key_init_i; op = ctrl_in.op_i; round = 0; key_len = ctrl_in.key_len_i}) >>
+            let key_out_pack = recv key_ri.res >> 
+            let key_word = *key[0+:4];
+            let key_bytes = call transpose(key_word);
+            set cipher_state := *cipher_state ^ key_bytes;
+            set key := key_out_pack.key >> // do checks on error of the out pack
+
+            // -------------Cycle 2-10 (Rounds)----------------
+            generate_seq (i : 1, 9,1){
+                send key_ri.req(aes_key_expand_in_pack::{clear=1'd0; key = *key; op = ctrl_in.op_i; round = i; key_len = ctrl_in.key_len_i}) >>
+                let key_out_pack = recv key_ri.res >>
+                let key_out = key_out_pack.key; // do checks on error of the out pack
+
+                send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+                let sub_bytes_out = recv sub_bytes_ri.res >>
+                send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
+                let shift_rows_out = recv shift_rows_ri.res >>
+                send mix_col_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
+                let mix_col_out = recv mix_col_ri.res >>
+                let odd_i = i&4'd1;
+                let key_word= match odd_i{
+                    4'd0 => *key[0+:4],
+                    _ =>  *key[4+:4]
+                };
+                let key_bytes = call transpose(key_word);
+                let add_rk_out = mix_col_out^key_bytes;
+                set cipher_state := add_rk_out;
+                set key := key_out
+            }>>
+
+            // -------------Cycle 11 (Final Round)----------------
+
 
             send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
             let sub_bytes_out = recv sub_bytes_ri.res >>
             send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
             let shift_rows_out = recv shift_rows_ri.res >>
-            send mix_col_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
-            let mix_col_out = recv mix_col_ri.res >>
+            let key_word = *key[0+:4];
+            let key_bytes = call transpose(key_word);
+            set cipher_state := shift_rows_out^key_bytes;
+            set dec_key := *key
+            },
+            _ => {
+                //----------------- Cycle 1 Round 0----------------
+                send key_ri.req(aes_key_expand_in_pack::{clear=1'd1; key = data_in.key_init_i; op = ctrl_in.op_i; round = 0; key_len = ctrl_in.key_len_i}) >>
+                let key_out_pack = recv key_ri.res >> 
+                let key_word = *key[0+:4];
+                let key_bytes = call transpose(key_word);
+                set cipher_state := *cipher_state ^ key_bytes;
+                set key := key_out_pack.key >> // do checks on error of the out pack
 
-            set cipher_state := mix_col_out^key_out;
-            set key := key_out
-        }>>
+                // -------------Cycle 2-10 (Rounds)----------------
+                generate_seq (i : 1, 9,1){// parametrize this i
+                    send key_ri.req(aes_key_expand_in_pack::{clear=1'd0; key = *key; op = ctrl_in.op_i; round = i; key_len = ctrl_in.key_len_i}) >>
+                    let key_out_pack = recv key_ri.res >>
+                    let key_out = key_out_pack.key; // do checks on error of the out pack
+                    send shift_rows_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+                    let shift_rows_out = recv shift_rows_ri.res >>
+                    send sub_bytes_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
+                    let sub_bytes_out = recv sub_bytes_ri.res >>
+                    
+                    let odd_i = i&4'd1;
+                    let key_word= match odd_i{
+                        4'd0 => *key[0+:4],
+                        _ =>  *key[4+:4]
+                    };
+                    let key_bytes = call transpose(key_word);
+                    let add_rk_out = sub_bytes_out^key_bytes;
 
-        // -------------Cycle 10 (Final Round)----------------
+                    send mix_col_ri.req(data_in_pack::{data = add_rk_out; op = ctrl_in.op_i}) >>
+                    let mix_col_out = recv mix_col_ri.res >>
 
-        send key_ri.req(aes_key_expand_in_pack::{clear=1'd0; key = *key; op = ctrl_in.op_i; round = 10; key_len = ctrl_in.key_len_i}) >>
-        let key_out_pack = recv key_ri.res >>
-        let key_out = key_out_pack.key; // do checks on error of the out pack
+                    set cipher_state := mix_col_out;
+                    set key := key_out
+                }>>
+                // -------------Cycle 11 (Final Round)----------------
+                send shift_rows_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+                let shift_rows_out = recv shift_rows_ri.res >>
+                send sub_bytes_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
+                let sub_bytes_out = recv sub_bytes_ri.res >>
+                let key_word = *key[0+:4];
+                let key_bytes = call transpose(key_word);
+                set cipher_state := sub_bytes_out^key_bytes
 
-        send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
-        let sub_bytes_out = recv sub_bytes_ri.res >>
-        send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
-        let shift_rows_out = recv shift_rows_ri.res >>
-        set cipher_state := shift_rows_out^key_out;
-        set dec_key := key_out >>
-        // -------------Cycle 11 (Output)----------------
-        send ep.res(aes_core_out_pack::{state_o = *cipher_state;
-                                        data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
-                                                            #{8'd0, 8'd0,8'd0, 8'd0},
-                                                            #{8'd0, 8'd0,8'd0, 8'd0},
-                                                            #{8'd0, 8'd0,8'd0, 8'd0}};
-                                        alert_o = 1'd0; //To:Do fix this
-                                        data_out_clear_o = ctrl_in.data_out_clear_i;
-                                        key_clear_o = ctrl_in.key_clear_i;
-                                        prng_reseed_o = ctrl_in.prng_reseed_i;
-                                        dec_key_gen_o = ctrl_in.dec_key_gen_i;
-                                        crypt_o = ctrl_in.crypt_i}) >>
-        cycle 1
+            }
+
+            }>>
+            // -------------Cycle 12 (Output)----------------
+            send ep.res(aes_core_out_pack::{state_o = *cipher_state;
+                                            data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
+                                                                #{8'd0, 8'd0,8'd0, 8'd0},
+                                                                #{8'd0, 8'd0,8'd0, 8'd0},
+                                                                #{8'd0, 8'd0,8'd0, 8'd0}};
+                                            alert_o = 1'd0; //To:Do fix this
+                                            data_out_clear_o = ctrl_in.data_out_clear_i;
+                                            key_clear_o = ctrl_in.key_clear_i;
+                                            prng_reseed_o = ctrl_in.prng_reseed_i;
+                                            dec_key_gen_o = ctrl_in.dec_key_gen_i;
+                                            crypt_o = ctrl_in.crypt_i})>>
+            cycle 1
 
     }
 
