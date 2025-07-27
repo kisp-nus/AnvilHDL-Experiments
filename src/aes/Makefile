@@ -9,7 +9,7 @@ all: obj_dir/V$(MODULE_NAME)
 .PHONY: run clean
 
 ifdef LTOFF
-    ANVIL_FLAGS = -disable-lt-checks
+    ANVIL_FLAGS = -O 0 -disable-lt-checks
 else
     ANVIL_FLAGS =
 endif
@@ -27,4 +27,4 @@ run: obj_dir/V$(MODULE_NAME)
 	@ $< $(TIMEOUT)
 
 clean:
-	rm -rf $(MODULE_NAME).sv $(MODULE_NAME)_driver.cpp obj_dir
+	rm -rf $(MODULE_NAME).anvil.sv $(MODULE_NAME)_driver.cpp obj_dir
