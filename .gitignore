@@ -1,2 +1,7 @@
+*.cpp
 *.anvil.sv
 anvil.Flist
+/.vscode/
+!sim_main.cpp
+**/obj_dir/
+**/logs/

@@ -1,0 +1,73 @@
+import "aes_cipher_core.anvil"
+proc aes_cipher_core_tb(){
+    chan ep_le -- ep_ri : aes_core_ch;
+    chan entr_ep_le -- entr_ep_ri : entropy_ch<128>;
+    spawn aes_cipher_core(ep_le, entr_ep_ri);
+    reg counter : logic[32];
+    loop{
+        set counter := *counter + 32'd1
+    }
+    loop{
+        dprint "[cycle %d] Sending request to aeS core"  (*counter);
+        send ep_ri.req(
+            aes_core_in_pack::{
+                state_init_i = #{
+                    #{8'h01, 8'h02, 8'h03, 8'h04},
+                    #{8'h05, 8'h06, 8'h07, 8'h08},
+                    #{8'h09, 8'h0a, 8'h0b, 8'h0c},
+                    #{8'h0d, 8'h0e, 8'h0f, 8'h10}
+                };
+                key_init_i = #{
+                    #{8'h01, 8'h02, 8'h03, 8'h04},
+                    #{8'h09, 8'h0a, 8'h0b, 8'h0c},
+                    #{8'h11, 8'h12, 8'h13, 8'h14},
+                    #{8'h19, 8'h1a, 8'h1b, 8'h1c},
+                    #{8'h21, 8'h22, 8'h23, 8'h24},
+                    #{8'h29, 8'h2a, 8'h2b, 8'h2c},
+                    #{8'h31, 8'h32, 8'h33, 8'h34},
+                    #{8'h39, 8'h3a, 8'h3b, 8'h3c}
+                }
+            }
+        )>>
+        send ep_ri.ctrl(
+            aes_control_pack::{
+                cfg_valid_i = 1'd1;
+                op_i = ciph_op_e::CIPH_FWD;
+                key_len_i = key_len_e::KEY_LEN_128;
+                crypt_i = sp2v_e::SP2V_HIGH;
+                dec_key_gen_i = sp2v_e::SP2V_LOW;
+                prng_reseed_i = 1'd0;
+                key_clear_i = 1'd0;
+                data_out_clear_i = 1'd0;
+                alert_fatal_i = 1'd0;
+                prd_clearing_state_i = #{
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00}
+                };
+                prd_clearing_key_i = #{
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00},
+                    #{8'h00, 8'h00, 8'h00, 8'h00}
+                };
+                force_masks_i = 1'd0
+            }
+        )>>
+
+        let cipher_text = recv ep_ri.res >>
+        dprint "[cycle %d] Received response from aeS core cipher test" (*counter);
+
+        dprint "%h, %h, %h, %h" (cipher_text.state_o[0][0], cipher_text.state_o[0][1], cipher_text.state_o[0][2], cipher_text.state_o[0][3]);
+        dprint "%h, %h, %h, %h" (cipher_text.state_o[1][0], cipher_text.state_o[1][1], cipher_text.state_o[1][2], cipher_text.state_o[1][3]);
+        dprint "%h, %h, %h, %h" (cipher_text.state_o[2][0], cipher_text.state_o[2][1], cipher_text.state_o[2][2], cipher_text.state_o[2][3]);
+        dprint "%h, %h, %h, %h" (cipher_text.state_o[3][0], cipher_text.state_o[3][1], cipher_text.state_o[3][2], cipher_text.state_o[3][3]) >>
+        cycle 10 >>
+        dfinish
+    }
+}
