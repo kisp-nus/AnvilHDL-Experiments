@@ -14,7 +14,7 @@ func aes_sub_word(data_in : logic[32]) {
     let b2_o = recv sch2_ri.res >>
     send sch3_ri.req(b3) >>
     let b3_o = recv sch3_ri.res >>
-    #{b3_o, b2_o, b1_o, b0_o}
+    #flat{b3_o, b2_o, b1_o, b0_o}
 }
 
 func expand_key(data_in : aes_key_expand_in_pack) {
@@ -68,13 +68,13 @@ func expand_key(data_in : aes_key_expand_in_pack) {
     let rcon_add_out = sub_word_out[0+:8] ^ *rcon>>
     let out = match key_len {
         key_len_e::KEY_LEN_128 => {
-            let rcon_added =  #{sub_word_out[8+:24], rcon_add_out};
+            let rcon_added =  #flat{sub_word_out[8+:24], rcon_add_out};
             #{key[3], key[2], key[1], key[0], key[2]^key[3], key[1]^key[2], key[0]^key[1], key[0]^rcon_added}
             
         },
         key_len_e::KEY_LEN_256 => {
            let rcon_added = match rnd[0]{
-            1'b1 => #{sub_word_out[8+:24], rcon_add_out},
+            1'b1 => #flat{sub_word_out[8+:24], rcon_add_out},
             _ => sub_word_out
             }>>
             match op {
