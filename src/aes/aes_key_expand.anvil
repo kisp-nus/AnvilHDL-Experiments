@@ -1,5 +1,11 @@
 import "aes_pkg.anvilh"
 
+func print_encryption_key(key_pack : logic[8][32]) {
+    generate(i : 0, 7, 1){
+        dprint "[KE Key Row %d] %h, %h, %h, %h" (i,key_pack[i][24+:8], key_pack[i][16+:8], key_pack[i][8+:8], key_pack[i][0+:8])
+    }
+}
+
 func aes_sub_word(data_in : logic[32]) {
     let b0 = sbox_in::{data=data_in[0+:8]; op = ciph_op_e::CIPH_FWD};
     let b1 = sbox_in::{data=data_in[8+:8]; op = ciph_op_e::CIPH_FWD};
@@ -20,17 +26,17 @@ func aes_sub_word(data_in : logic[32]) {
 func expand_key(data_in : aes_key_expand_in_pack) {
     let key = data_in.key;
     let key_len = data_in.ctrl.key_len;
-    // let clear_i = data_in.clear;
+    
     let op = data_in.ctrl.op;
     let rnd = data_in.round;
     let rot_word_out = match key_len {
         key_len_e::KEY_LEN_128 => {
             match op {
                 ciph_op_e::CIPH_FWD => {
-                    call circ_byte_shift(key[3], 2'h1)
+                    call circ_byte_shift_flat(key[3], 2'h3)
                 },
                 _ => {
-                    call circ_byte_shift(key[3]^key[2], 2'h3)
+                    call circ_byte_shift_flat(key[3]^key[2], 2'h3)
                 }
             }
             
@@ -50,10 +56,10 @@ func expand_key(data_in : aes_key_expand_in_pack) {
                 _ =>{
                     match op {
                         ciph_op_e::CIPH_FWD => {
-                            call circ_byte_shift(key[7], 2'h3)
+                            call circ_byte_shift_flat(key[7], 2'h3)
                         },
                         _ => {
-                            call circ_byte_shift(key[3], 2'h3)
+                            call circ_byte_shift_flat(key[3], 2'h3)
                         }
                     }
                 }
@@ -65,18 +71,48 @@ func expand_key(data_in : aes_key_expand_in_pack) {
         }
     };
     let sub_word_out = call aes_sub_word(rot_word_out);
-    let rcon_add_out = sub_word_out[0+:8] ^ *rcon>>
+    
+    let use_rcon = match key_len {
+        key_len_e::KEY_LEN_256 => {
+            match rnd[0] {
+                1'b0 => 1'b0,  // For AES-256 even rounds, don't use Rcon
+                _ => 1'b1
+            }
+        },
+        _ => 1'b1
+    };
+    
+    let rcon_add_out = match use_rcon {
+        1'b1 => sub_word_out[0+:8] ^ *rcon,
+        _ => sub_word_out[0+:8]
+    }>>
+    
+    let irregular = match use_rcon {
+        1'b1 => #flat{sub_word_out[8+:24], rcon_add_out},
+        _ => sub_word_out
+    } >>
     let out = match key_len {
         key_len_e::KEY_LEN_128 => {
-            let rcon_added =  #flat{sub_word_out[8+:24], rcon_add_out};
-            #{key[3], key[2], key[1], key[0], key[2]^key[3], key[1]^key[2], key[0]^key[1], key[0]^rcon_added}
-            
+            match op {
+                ciph_op_e::CIPH_FWD => {
+                    let w0 = irregular ^ key[0];
+                    let w1 = w0 ^ key[1];
+                    let w2 = w1 ^ key[2];
+                    let w3 = w2 ^ key[3];
+                    #{key[3], key[2], key[1], key[0], w3, w2, w1, w0}
+                },
+                ciph_op_e::CIPH_INV => {
+                    let w1 = key[0] ^ key[1];
+                    let w2 = key[1] ^ key[2];
+                    let w3 = key[2] ^ key[3];
+                    #{key[3], key[2], key[1], key[0], w3, w2, w1, irregular ^ key[0]}
+                },
+                _ => {
+                    #{key[3], key[2], key[1], key[0], key[3], key[2], key[1], key[0]}
+                }
+            }
         },
         key_len_e::KEY_LEN_256 => {
-           let rcon_added = match rnd[0]{
-            1'b1 => #flat{sub_word_out[8+:24], rcon_add_out},
-            _ => sub_word_out
-            }>>
             match op {
                 ciph_op_e::CIPH_FWD => {
                     match rnd{
@@ -84,7 +120,11 @@ func expand_key(data_in : aes_key_expand_in_pack) {
                             key
                         },
                         _ => {
-                            #{key[6]^key[7], key[5]^key[6], key[4]^key[5], key[4]^rcon_added, key[7],key[6], key[5], key[4]}
+                            let w4 = irregular ^ key[0];
+                            let w5 = w4 ^ key[1];
+                            let w6 = w5 ^ key[2];
+                            let w7 = w6 ^ key[3];
+                            #{w7, w6, w5, w4, key[7], key[6], key[5], key[4]}
                         }
                     }
                 },
@@ -94,7 +134,11 @@ func expand_key(data_in : aes_key_expand_in_pack) {
                             #{key[3], key[2], key[1], key[0], key[7], key[6], key[5], key[4]}
                         },
                         _ => {
-                            #{key[3], key[2], key[1],key[0],key[7]^key[6],key[6]^key[5], key[5]^key[4], key[4]^rcon_added}
+                            let w0 = irregular ^ key[4];
+                            let w1 = key[4] ^ key[5];
+                            let w2 = key[5] ^ key[6];
+                            let w3 = key[6] ^ key[7];
+                            #{key[3], key[2], key[1], w0, key[7], key[6], key[5], key[4]}
                         }
                     }
                 },
@@ -105,7 +149,8 @@ func expand_key(data_in : aes_key_expand_in_pack) {
             //ignoring 192 bit key length for now
             key
         }
-    };
+    }>>
+    // call print_encryption_key(out) >>
     out
 
 }
@@ -117,7 +162,7 @@ func set_rcon(data_in, clear_i : logic[1]) {
         1'd1 => {
             match op{
                 ciph_op_e::CIPH_FWD => {
-                set rcon := 8'h01
+                    set rcon := 8'h01
                 },
                 _ => {
                     match key_len {
@@ -138,7 +183,6 @@ func set_rcon(data_in, clear_i : logic[1]) {
             match op {
                 ciph_op_e::CIPH_FWD => {
                     set rcon := call mul2(*rcon)
-
                 },
                 ciph_op_e::CIPH_INV => {
                     set rcon := call div2(*rcon)
@@ -148,7 +192,18 @@ func set_rcon(data_in, clear_i : logic[1]) {
                 }
             }
         }
-                
+    }
+}
+
+func should_update_rcon(key_len : key_len_e, rnd : logic[4]) {
+    match key_len {
+        key_len_e::KEY_LEN_256 => {
+            match rnd[0] {
+                1'b0 => 1'b0,
+                _ => 1'b1
+            }
+        },
+        _ => 1'b1
     }
 }
 
@@ -166,15 +221,21 @@ proc aes_key_expand(ep : left aes_key_expand_ch) {
 
     loop {
         try init = recv ep.init{
-            call set_rcon(init, 1'd1)
+            call set_rcon(init, 1'd1);
+            cycle 1
         }
         else{ 
-            let data_in = recv ep.req >>
-            let key_out = call expand_key(data_in) >>
-            call set_rcon(data_in.ctrl,1'd0);
-            send ep.res(key_out)
-        } >>
-
-        cycle 1
+            try data_in = recv ep.req{
+                let key_out = call expand_key(data_in) >>
+                send ep.res(aes_key_expand_out_pack::{key = key_out; error = 1'd0}) >>
+                match call should_update_rcon(data_in.ctrl.key_len, data_in.round) {
+                    1'b1 => call set_rcon(data_in.ctrl, 1'd0),
+                    _ => cycle 1
+                }
+            }
+            else{
+                cycle 1
+            }
+        }
     }
 }

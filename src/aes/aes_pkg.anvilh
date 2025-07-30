@@ -131,7 +131,7 @@ chan sbox_ch {
 }
 
 
-func circ_byte_shift(data, shift){
+func circ_byte_shift(data: logic[4][8], shift: logic[2]) {
     match shift {
         2'h0 => data,
         2'h1 => #{data[2], data[1], data[0], data[3]},
@@ -140,6 +140,23 @@ func circ_byte_shift(data, shift){
         _ => data
     }
 }
+func circ_byte_shift_flat(data: logic[32], shift: logic[2]) {
+    match shift {
+        2'h0 => data,
+        2'h1 => #flat{data[16+:8], data[8+:8], data[0+:8], data[24+:8]},
+        2'h2 => #flat{data[8+:8], data[0+:8], data[24+:8], data[16+:8]},
+        2'h3 => #flat{data[0+:8], data[24+:8], data[16+:8], data[8+:8]},
+        _ => data
+    }
+}
+func create_byte_pack(data : logic[4][32]){
+    let row_1 = #{data[0][24+:8], data[0][16+:8], data[0][8+:8], data[0][0+:8]};
+    let row_2 = #{data[1][24+:8], data[1][16+:8], data[1][8+:8], data[1][0+:8]};
+    let row_3 = #{data[2][24+:8], data[2][16+:8], data[2][8+:8], data[2][0+:8]};
+    let row_4 = #{data[3][24+:8], data[3][16+:8], data[3][8+:8], data[3][0+:8]};
+    #{row_4, row_3, row_2, row_1}
+}
+
 func div2(data){
     #{data[7], data[6], data[5], data[4]^data[0], data[3]^data[0], data[2], data[1]^data[0], data[0]}
 }
@@ -273,3 +290,12 @@ proc sbox(ep : left sbox_ch){
         cycle 1
     }
 }
+
+func add_rk(a : logic[4][4][8], b : logic[4][4][8]){
+    let row_1 = #{a[0][3]^b[0][3], a[0][2]^b[0][2], a[0][1]^b[0][1], a[0][0]^b[0][0]};
+    let row_2 = #{a[1][3]^b[1][3], a[1][2]^b[1][2], a[1][1]^b[1][1], a[1][0]^b[1][0]};
+    let row_3 = #{a[2][3]^b[2][3], a[2][2]^b[2][2], a[2][1]^b[2][1], a[2][0]^b[2][0]};
+    let row_4 = #{a[3][3]^b[3][3], a[3][2]^b[3][2], a[3][1]^b[3][1], a[3][0]^b[3][0]};
+    #{row_4, row_3, row_2, row_1}
+}
+    
