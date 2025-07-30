@@ -155,7 +155,7 @@ func expand_key(data_in : aes_key_expand_in_pack) {
 
 }
 
-func set_rcon(data_in, clear_i : logic[1]) {
+func set_rcon(data_in, clear_i : logic) {
     let op = data_in.op;
     let key_len = data_in.key_len;
     match clear_i {
