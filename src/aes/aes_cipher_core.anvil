@@ -85,7 +85,7 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                                                     // prng_reseed_o = 1'd0;
                                                     crypt_o = sp2v_e::SP2V_LOW;
                                                     dec_key_gen_o = sp2v_e::SP2V_HIGH}) >>
-                                                    {call print_encryption_key(*dec_key)} >>
+                                                    // {call print_encryption_key(*dec_key)} >>
                                                     cycle 1
 
             }
@@ -101,10 +101,6 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                     let key_init = match ctrl_in.op_i {
                         ciph_op_e::CIPH_FWD => key_init_in,
                         _ => *dec_key
-                    } >>
-                    match ctrl_in.op_i {
-                        ciph_op_e::CIPH_FWD => call print_encryption_key(key_init),
-                        _ => call print_decryption_key(key_init)
                     } >>
                     {set cipher_state := data_in;
                     set key := key_init} >>
@@ -155,13 +151,11 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                                 let key_bytes_t = recv key_mix_ri.res >>
                                 key_bytes_t
                             )
-                    
-                        };
-
+                        } >>
                         let add_rk_out = call add_rk(mix_col_out,key_bytes);
                         set cipher_state := add_rk_out;
                         set key := key_out
-                    }>>                    
+                    }>>
 
                     // -------------Cycle 11 (Final Round)----------------
 

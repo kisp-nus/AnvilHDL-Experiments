@@ -106,13 +106,13 @@ func expand_key(data_in : aes_key_expand_in_pack) {
                     let w1 = w0 ^ key[1];
                     let w2 = w1 ^ key[2];
                     let w3 = w2 ^ key[3];
-                    // dprint "sub word out = %h | rcon_add_out = %h | rot_word_out = %h" (sub_word_out,rcon_add_out, rot_word_out) >>
                     #{key[3], key[2], key[1], key[0], w3, w2, w1, w0}
                 },
                 ciph_op_e::CIPH_INV => {
                     let w1 = key[0] ^ key[1];
                     let w2 = key[1] ^ key[2];
                     let w3 = key[2] ^ key[3];
+                    // dprint "[Cycle %d] [Round %d] rcon =%h| sub word out = %h | rcon_add_out = %h | rot_word_out = %h" (*counter,rnd,*rcon, sub_word_out,rcon_add_out, rot_word_out) >>
                     #{key[3], key[2], key[1], key[0], w3, w2, w1, irregular ^ key[0]}
                 },
                 _ => {
@@ -227,7 +227,11 @@ proc aes_key_expand(ep : left aes_key_expand_ch) {
     spawn sbox(sch2_le);
     spawn sbox(sch3_le);
     reg rcon : logic[8];
+    // reg counter : logic[32];
 
+    // loop{
+    //     set counter := *counter + 32'd1
+    // }
     loop {
         try init = recv ep.init{
             call set_rcon(init, 1'd1)

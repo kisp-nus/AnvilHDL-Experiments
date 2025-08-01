@@ -158,7 +158,7 @@ func create_byte_pack(data : logic[4][32]){
 }
 
 func div2(data){
-    #{data[7], data[6], data[5], data[4]^data[0], data[3]^data[0], data[2], data[1]^data[0], data[0]}
+    #{data[0], data[7], data[6], data[5], data[4]^data[0], data[3]^data[0], data[2], data[1]^data[0]}
 }
 
 
