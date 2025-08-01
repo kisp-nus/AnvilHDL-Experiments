@@ -6,6 +6,12 @@ func print_state(state : logic[4][4][8]) {
    }
    
 }
+
+func print_enc_key(key : logic[8][32]) {
+   generate(i : 0, 7, 1){
+        dprint "[Row %d] %h, %h, %h, %h" (i, key[i][24+:8], key[i][16+:8], key[i][8+:8], key[i][0+:8])
+   }
+}
 proc aes_cipher_core_tb(){
     chan ep_le -- ep_ri : aes_core_ch;
     chan entr_ep_le -- entr_ep_ri : entropy_ch<128>;
@@ -46,9 +52,10 @@ proc aes_cipher_core_tb(){
         
         dprint "[cycle %d] Received response from AES core encryption test" (*counter);
 
-        call print_state(cipher_text.state_o);
+        call print_state(cipher_text.state_o) >>
 
         set next_inp := cipher_text.state_o >>
+        
         let key = #{
                     #flat{8'h01, 8'h02, 8'h03, 8'h04},
                     #flat{8'h09, 8'h0a, 8'h0b, 8'h0c},
@@ -58,7 +65,7 @@ proc aes_cipher_core_tb(){
                     #flat{8'h29, 8'h2a, 8'h2b, 8'h2c},
                     #flat{8'h31, 8'h32, 8'h33, 8'h34},
                     #flat{8'h39, 8'h3a, 8'h3b, 8'h3c}
-                };
+                } >>
 
         send ep_ri.dec_key_gen_req(1'd1) >>
         send ep_ri.key_pack(key) >>
@@ -66,7 +73,8 @@ proc aes_cipher_core_tb(){
 
 
         let _ = recv ep_ri.res >>
-        // dprint "[cycle %d] Received response from AES core decryption key req" (*counter);
+        
+        dprint "[cycle %d] Received response from AES core decryption key req" (*counter);
 
         cycle 1 >>
 
@@ -79,7 +87,7 @@ proc aes_cipher_core_tb(){
         }) >>
 
         let dec_cipher_text = recv ep_ri.res >>
-        call print_state(dec_cipher_text.state_o)>>
+        call print_state(dec_cipher_text.state_o) >>
 
         cycle 10 >>
         
