@@ -114,7 +114,7 @@ import "aes_pkg.anvilh"
 // }
 
 
-func use_sbox(data_in){
+func use_sbox(data_in: data_in_pack){
     // generate(i : 0, 3, 1){
     //     generate(j : 0, 3, 1){
     //         send sri.req(data_in[i][j]) >>
@@ -123,6 +123,7 @@ func use_sbox(data_in){
     // } To do : make this more convenient
     let d00 = sbox_in::{data = data_in.data[0][0]; op = data_in.op};
     send sri_0_0.req(d00) >>
+    
     let data_o_0_0 = recv sri_0_0.res >>
     let d01 = sbox_in::{data = data_in.data[0][1]; op = data_in.op};
     send sri_0_1.req(d01) >>
@@ -179,10 +180,10 @@ func use_sbox(data_in){
     let data_o_3_3 = recv sri_3_3.res >>
 
     #{ 
-        #{data_o_0_0, data_o_0_1, data_o_0_2, data_o_0_3},
-        #{data_o_1_0, data_o_1_1, data_o_1_2, data_o_1_3},
+        #{data_o_3_0, data_o_3_1, data_o_3_2, data_o_3_3},
         #{data_o_2_0, data_o_2_1, data_o_2_2, data_o_2_3},
-        #{data_o_3_0, data_o_3_1, data_o_3_2, data_o_3_3}
+        #{data_o_1_0, data_o_1_1, data_o_1_2, data_o_1_3},
+        #{data_o_0_0, data_o_0_1, data_o_0_2, data_o_0_3}
     }//check this orientation
 }   
 

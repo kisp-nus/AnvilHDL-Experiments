@@ -2,7 +2,32 @@
 
 // Wrapper for AES key expansion module
 
+module aes_sub_bytes_wrapper(
+  input logic[0:0] clk_i,
+  input logic[0:0] rst_ni,
+  input logic[129:0] _ep_req_0,
+  output logic[127:0] _ep_res_0
+);
+aes_pkg::sp2v_e out_valid, out_ack;
+assign out_ack = out_valid == aes_pkg::SP2V_HIGH ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
+aes_sub_bytes #(
+  .SecSBoxImpl(aes_pkg::SBoxImplLut)
+) dut (
+  .clk_i,
+  .rst_ni,
+  .en_i(aes_pkg::SP2V_HIGH),
+  .out_req_o(out_valid),
+  .out_ack_i(out_ack),
+  .op_i(_ep_req_0[0+:2]),
+  .data_i(_ep_req_0[2+:128]),
+  .mask_i('0),
+  .prd_i(0),
+  .data_o(_ep_res_0),
+  .mask_o(),
+  .err_o()
+);
 
+endmodule 
 module aes_key_expand_wrapper (
   input logic[0:0] clk_i,
   input logic[0:0] rst_ni,
