@@ -98,7 +98,6 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                     send key_ri.init(init_pack::{op = ctrl_in.op_i; key_len = key_len}) >>
 
                     // -------------Cycle 0 (Initialization)----------------
-                    set cipher_state := data_in;
                     let key_init = match ctrl_in.op_i {
                         ciph_op_e::CIPH_FWD => key_init_in,
                         _ => *dec_key
@@ -107,7 +106,8 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                         ciph_op_e::CIPH_FWD => call print_encryption_key(key_init),
                         _ => call print_decryption_key(key_init)
                     } >>
-                    set key := key_init >>
+                    {set cipher_state := data_in;
+                    set key := key_init} >>
                     
                     // dprint "[Cycle %d] Initialization" (*cycle_count);
 
@@ -121,8 +121,8 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
 
                     let key_bytes_normal = call transpose(key_word);
                     let key_bytes = key_bytes_normal; // No key mix for round 0
-                    set cipher_state := call add_rk(*cipher_state , key_bytes);
-                    set key := key_out_pack.key >> // do checks on error of the out pack
+                {set cipher_state := call add_rk(*cipher_state , key_bytes);
+                    set key := key_out_pack.key} >> // do checks on error of the out pack
                     // dprint "[Cycle %d] Round 0" (*cycle_count);
 
                     // -------------Cycle 2-10 (Rounds)----------------
@@ -175,9 +175,9 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                     let shift_rows_out = recv shift_rows_ri.res >>
 
                     //Add Round Key
-                    let key_word_lin = *key[0+:4];
-                    let key_word = call create_byte_pack(key_word_lin);
-                    let key_bytes_normal = call transpose(key_word);
+                    let key_word_lin = *key[0+:4] >>
+                    let key_word = call create_byte_pack(key_word_lin) >>
+                    let key_bytes_normal = call transpose(key_word) >>
                     let key_bytes = match ctrl_in.op_i{
                         ciph_op_e::CIPH_FWD => key_bytes_normal,
                         _ => (
@@ -185,7 +185,7 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                             let key_bytes = recv key_mix_ri.res >>
                             key_bytes
                         )
-                    };
+                    } >>
                     set cipher_state := call add_rk(shift_rows_out,key_bytes) >>
 
                     // -------------Cycle 12 (Output)----------------
