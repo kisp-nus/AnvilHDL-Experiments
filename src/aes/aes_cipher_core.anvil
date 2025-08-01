@@ -5,26 +5,26 @@ import "aes_shift_rows.anvil"
 import "aes_mix_columns.anvil"
 import "aes_sub_bytes.anvil"
 
-// func print_encryption_key(key : logic[8][32]){
-//         dprint "[Enc Key Row 0] %h, %h, %h, %h" (key[0][24+:8], key[0][16+:8], key[0][8+:8], key[0][0+:8]);
-//         dprint "[Enc Key Row 1] %h, %h, %h, %h" (key[1][24+:8], key[1][16+:8], key[1][8+:8], key[1][0+:8]);
-//         dprint "[Enc Key Row 2] %h, %h, %h, %h" (key[2][24+:8], key[2][16+:8], key[2][8+:8], key[2][0+:8]);
-//         dprint "[Enc Key Row 3] %h, %h, %h, %h" (key[3][24+:8], key[3][16+:8], key[3][8+:8], key[3][0+:8]);
-//         dprint "[Enc Key Row 4] %h, %h, %h, %h" (key[4][24+:8], key[4][16+:8], key[4][8+:8], key[4][0+:8]);
-//         dprint "[Enc Key Row 5] %h, %h, %h, %h" (key[5][24+:8], key[5][16+:8], key[5][8+:8], key[5][0+:8]);
-//         dprint "[Enc Key Row 6] %h, %h, %h, %h" (key[6][24+:8], key[6][16+:8], key[6][8+:8], key[6][0+:8]);
-//         dprint "[Enc Key Row 7] %h, %h, %h, %h" (key[7][24+:8], key[7][16+:8], key[7][8+:8], key[7][0+:8])
-// }
-// func print_decryption_key(key : logic[8][32]){
-//         dprint "[Dec Key Row 0] %h, %h, %h, %h" (key[0][24+:8], key[0][16+:8], key[0][8+:8], key[0][0+:8]);
-//         dprint "[Dec Key Row 1] %h, %h, %h, %h" (key[1][24+:8], key[1][16+:8], key[1][8+:8], key[1][0+:8]);
-//         dprint "[Dec Key Row 2] %h, %h, %h, %h" (key[2][24+:8], key[2][16+:8], key[2][8+:8], key[2][0+:8]);
-//         dprint "[Dec Key Row 3] %h, %h, %h, %h" (key[3][24+:8], key[3][16+:8], key[3][8+:8], key[3][0+:8]);
-//         dprint "[Dec Key Row 4] %h, %h, %h, %h" (key[4][24+:8], key[4][16+:8], key[4][8+:8], key[4][0+:8]);
-//         dprint "[Dec Key Row 5] %h, %h, %h, %h" (key[5][24+:8], key[5][16+:8], key[5][8+:8], key[5][0+:8]);
-//         dprint "[Dec Key Row 6] %h, %h, %h, %h" (key[6][24+:8], key[6][16+:8], key[6][8+:8], key[6][0+:8]);
-//         dprint "[Dec Key Row 7] %h, %h, %h, %h" (key[7][24+:8], key[7][16+:8], key[7][8+:8], key[7][0+:8])
-// }
+func print_encryption_key(key : logic[8][32]){
+        dprint "[Cycle %d] [Enc Key Row 0] %h, %h, %h, %h" (*cycle_count ,key[0][24+:8], key[0][16+:8], key[0][8+:8], key[0][0+:8]) >>
+        dprint "[Cycle %d] [Enc Key Row 1] %h, %h, %h, %h" (*cycle_count ,key[1][24+:8], key[1][16+:8], key[1][8+:8], key[1][0+:8]) >>
+        dprint "[Cycle %d] [Enc Key Row 2] %h, %h, %h, %h" (*cycle_count ,key[2][24+:8], key[2][16+:8], key[2][8+:8], key[2][0+:8]) >>
+        dprint "[Cycle %d] [Enc Key Row 3] %h, %h, %h, %h" (*cycle_count ,key[3][24+:8], key[3][16+:8], key[3][8+:8], key[3][0+:8]) >>
+        dprint "[Cycle %d] [Enc Key Row 4] %h, %h, %h, %h" (*cycle_count ,key[4][24+:8], key[4][16+:8], key[4][8+:8], key[4][0+:8]) >>
+        dprint "[Cycle %d] [Enc Key Row 5] %h, %h, %h, %h" (*cycle_count ,key[5][24+:8], key[5][16+:8], key[5][8+:8], key[5][0+:8]) >>
+        dprint "[Cycle %d] [Enc Key Row 6] %h, %h, %h, %h" (*cycle_count ,key[6][24+:8], key[6][16+:8], key[6][8+:8], key[6][0+:8]) >>
+        dprint "[Cycle %d] [Enc Key Row 7] %h, %h, %h, %h" (*cycle_count ,key[7][24+:8], key[7][16+:8], key[7][8+:8], key[7][0+:8])
+}
+func print_decryption_key(key : logic[8][32]){
+        dprint "[Cycle %d] [Dec Key Row 0] %h, %h, %h, %h" (*cycle_count, key[0][24+:8], key[0][16+:8], key[0][8+:8], key[0][0+:8]) >>
+        dprint "[Cycle %d] [Dec Key Row 1] %h, %h, %h, %h" (*cycle_count, key[1][24+:8], key[1][16+:8], key[1][8+:8], key[1][0+:8]) >>
+        dprint "[Cycle %d] [Dec Key Row 2] %h, %h, %h, %h" (*cycle_count, key[2][24+:8], key[2][16+:8], key[2][8+:8], key[2][0+:8]) >>
+        dprint "[Cycle %d] [Dec Key Row 3] %h, %h, %h, %h" (*cycle_count, key[3][24+:8], key[3][16+:8], key[3][8+:8], key[3][0+:8]) >>
+        dprint "[Cycle %d] [Dec Key Row 4] %h, %h, %h, %h" (*cycle_count, key[4][24+:8], key[4][16+:8], key[4][8+:8], key[4][0+:8]) >>
+        dprint "[Cycle %d] [Dec Key Row 5] %h, %h, %h, %h" (*cycle_count, key[5][24+:8], key[5][16+:8], key[5][8+:8], key[5][0+:8]) >>
+        dprint "[Cycle %d] [Dec Key Row 6] %h, %h, %h, %h" (*cycle_count, key[6][24+:8], key[6][16+:8], key[6][8+:8], key[6][0+:8]) >>
+        dprint "[Cycle %d] [Dec Key Row 7] %h, %h, %h, %h" (*cycle_count, key[7][24+:8], key[7][16+:8], key[7][8+:8], key[7][0+:8])
+}
 
 
 // func print_cipher_state(cipher_state : logic[4][4][8]){
@@ -59,19 +59,21 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
 
     loop{
             try key_gen = recv ep.dec_key_gen_req  {
+                //Cycle 0 (Initialization)
                 let key_init = recv ep.key_pack >>
                 let key_len = recv ep.key_len_i >>
                 send key_ri.init(init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}) >>
                 set key := key_init >>
+                //Cycle 1 - 10 Rounds
 
                 generate_seq (i : 0, 9, 1){
                     send key_ri.req(aes_key_expand_in_pack::{key = *key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
                     let key_out_pack = recv key_ri.res >>
                     set key := key_out_pack.key
                 } >>
-
+                //Cycle 11 (Final Round Storing state)
                 set dec_key := *key >>
-                
+                //Cycle 12 (Output)
                 send ep.res(aes_core_out_pack::{state_o = *cipher_state;
                                                     // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
                                                     //                     #{8'd0, 8'd0,8'd0, 8'd0},
@@ -83,9 +85,10 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                                                     // prng_reseed_o = 1'd0;
                                                     crypt_o = sp2v_e::SP2V_LOW;
                                                     dec_key_gen_o = sp2v_e::SP2V_HIGH}) >>
+                                                    {call print_encryption_key(*dec_key)} >>
                                                     cycle 1
 
-            }   
+            }
             else {
                 try data_in = recv ep.crypt{
                     let key_init_in = recv ep.key_pack >>
@@ -99,7 +102,11 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                     let key_init = match ctrl_in.op_i {
                         ciph_op_e::CIPH_FWD => key_init_in,
                         _ => *dec_key
-                    };
+                    } >>
+                    match ctrl_in.op_i {
+                        ciph_op_e::CIPH_FWD => call print_encryption_key(key_init),
+                        _ => call print_decryption_key(key_init)
+                    } >>
                     set key := key_init >>
                     
                     // dprint "[Cycle %d] Initialization" (*cycle_count);
@@ -113,14 +120,7 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                     let key_word = call create_byte_pack(key_word_lin);
 
                     let key_bytes_normal = call transpose(key_word);
-                    let key_bytes = match ctrl_in.op_i{
-                        ciph_op_e::CIPH_FWD => key_bytes_normal,
-                        _ => (
-                            send key_mix_ri.req(data_in_pack::{data = key_bytes_normal; op = ciph_op_e::CIPH_INV}) >>
-                            let key_bytes_recv = recv key_mix_ri.res >>
-                            key_bytes_recv
-                        )
-                    };
+                    let key_bytes = key_bytes_normal; // No key mix for round 0
                     set cipher_state := call add_rk(*cipher_state , key_bytes);
                     set key := key_out_pack.key >> // do checks on error of the out pack
                     // dprint "[Cycle %d] Round 0" (*cycle_count);

@@ -1,10 +1,10 @@
 import "aes_pkg.anvilh"
 
-func print_encryption_key(key_pack : logic[8][32]) {
-    generate(i : 0, 7, 1){
-        dprint "[KE Key Row %d] %h, %h, %h, %h" (i,key_pack[i][24+:8], key_pack[i][16+:8], key_pack[i][8+:8], key_pack[i][0+:8])
-    }
-}
+// func print_encryption_key(key_pack : logic[8][32]) {
+//     generate(i : 0, 7, 1){
+//         dprint "[KE Key Row %d] %h, %h, %h, %h" (i,key_pack[i][24+:8], key_pack[i][16+:8], key_pack[i][8+:8], key_pack[i][0+:8])
+//     }
+// }
 
 func aes_sub_word(data_in : logic[32]) {
     let b0 = sbox_in::{data=data_in[0+:8]; op = ciph_op_e::CIPH_FWD};
@@ -24,11 +24,11 @@ func aes_sub_word(data_in : logic[32]) {
 }
 
 func expand_key(data_in : aes_key_expand_in_pack) {
-    let key = data_in.key;
-    let key_len = data_in.ctrl.key_len;
+    let key = data_in.key >>
+    let key_len = data_in.ctrl.key_len >>
     
-    let op = data_in.ctrl.op;
-    let rnd = data_in.round;
+    let op = data_in.ctrl.op >>
+    let rnd = data_in.round >>
     let rot_word_out = match key_len {
         key_len_e::KEY_LEN_128 => {
             match op {
@@ -69,8 +69,8 @@ func expand_key(data_in : aes_key_expand_in_pack) {
             //ignoring 192 bit key length for now
             key[3]
         }
-    };
-    let sub_word_out = call aes_sub_word(rot_word_out);
+    } >>
+    let sub_word_out = call aes_sub_word(rot_word_out) >>
     
     let use_rcon = match key_len {
         key_len_e::KEY_LEN_256 => {
@@ -80,12 +80,12 @@ func expand_key(data_in : aes_key_expand_in_pack) {
             }
         },
         _ => 1'b1
-    };
+    } >>
     
     let rcon_add_out = match use_rcon {
         1'b1 => sub_word_out[0+:8] ^ *rcon,
         _ => sub_word_out[0+:8]
-    }>>
+    } >>
     
     let irregular = match use_rcon {
         1'b1 => #flat{sub_word_out[8+:24], rcon_add_out},
@@ -221,15 +221,14 @@ proc aes_key_expand(ep : left aes_key_expand_ch) {
 
     loop {
         try init = recv ep.init{
-            call set_rcon(init, 1'd1);
-            cycle 1
+            call set_rcon(init, 1'd1)
         }
         else{ 
-            try data_in = recv ep.req{
+            try data_in = recv ep.req {
                 let key_out = call expand_key(data_in) >>
                 send ep.res(aes_key_expand_out_pack::{key = key_out; error = 1'd0}) >>
-                match call should_update_rcon(data_in.ctrl.key_len, data_in.round) {
-                    1'b1 => call set_rcon(data_in.ctrl, 1'd0),
+                match (call should_update_rcon(data_in.ctrl.key_len, data_in.round)) {
+                    1'b1 => {call set_rcon(data_in.ctrl, 1'd0)},
                     _ => cycle 1
                 }
             }

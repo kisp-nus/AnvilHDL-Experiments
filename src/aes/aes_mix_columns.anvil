@@ -74,18 +74,21 @@ proc aes_mix_columns (ep : left mix_column_ch) {
     spawn mix_single_columns(mcle3);
 
     loop{
-        let data_in = recv ep.req >>
-        let data_i_transposed = call transpose(data_in.data);
-        send mcri0.req(mix_column_in_pack::{data = data_i_transposed[0]; op = data_in.op});
-        send mcri1.req(mix_column_in_pack::{data = data_i_transposed[1]; op = data_in.op});
-        send mcri2.req(mix_column_in_pack::{data = data_i_transposed[2]; op = data_in.op});
-        send mcri3.req(mix_column_in_pack::{data = data_i_transposed[3]; op=  data_in.op}) >>
-        let row_1 = recv mcri0.res >>
-        let row_2 = recv mcri1.res >>
-        let row_3 = recv mcri2.res >>
-        let row_4 = recv mcri3.res >>
-        let data_out = #{row_4, row_3, row_2, row_1};
-        send ep.res(data_out) >>
-        cycle 1
+            let data_in = recv ep.req >>
+            let data_i_transposed = call transpose(data_in.data) >>
+            {
+                send mcri0.req(mix_column_in_pack::{data = data_i_transposed[0]; op = data_in.op});
+                send mcri1.req(mix_column_in_pack::{data = data_i_transposed[1]; op = data_in.op});
+                send mcri2.req(mix_column_in_pack::{data = data_i_transposed[2]; op = data_in.op});
+                send mcri3.req(mix_column_in_pack::{data = data_i_transposed[3]; op=  data_in.op}) 
+            }
+            >>
+            let row_1 = recv mcri0.res >>
+            let row_2 = recv mcri1.res >>
+            let row_3 = recv mcri2.res >>
+            let row_4 = recv mcri3.res >>
+            let data_out = #{row_4, row_3, row_2, row_1};
+            send ep.res(data_out) >>
+            cycle 1
     }
 }

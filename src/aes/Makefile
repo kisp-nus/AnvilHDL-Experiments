@@ -1,6 +1,6 @@
 MODULE_NAME ?= top
 TOP_MODULE ?= $(MODULE_NAME)
-VERILATOR_FLAGS ?= --top $(MODULE_NAME) -j 2 --threads 2
+VERILATOR_FLAGS ?= --top $(MODULE_NAME) --runtime-debug
 
 TEST_DRIVER = sim_main.cpp
 
@@ -9,7 +9,7 @@ all: obj_dir/V$(MODULE_NAME)
 .PHONY: run clean
 
 ifdef LTOFF
-    ANVIL_FLAGS = -O 0 -disable-lt-checks
+    ANVIL_FLAGS = -disable-lt-checks -O 0
 else
     ANVIL_FLAGS =
 endif
@@ -27,4 +27,4 @@ run: obj_dir/V$(MODULE_NAME)
 	@ $< $(TIMEOUT)
 
 clean:
-	rm -rf $(MODULE_NAME).anvil.sv $(MODULE_NAME)_driver.cpp obj_dir
+	rm -rf *.anvil.sv *_driver.cpp obj_dir
