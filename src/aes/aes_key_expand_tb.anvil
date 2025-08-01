@@ -18,14 +18,14 @@ proc aes_key_expand_tb(){
         send ep_ri.init(init_pack::{key_len = key_len_e::KEY_LEN_128; op = ciph_op_e::CIPH_FWD}) >>
         
         set next_key := #{
-                    #{8'h01, 8'h02, 8'h03, 8'h04},
-                    #{8'h09, 8'h0a, 8'h0b, 8'h0c},
-                    #{8'h11, 8'h12, 8'h13, 8'h14},
-                    #{8'h19, 8'h1a, 8'h1b, 8'h1c},
-                    #{8'h21, 8'h22, 8'h23, 8'h24},
-                    #{8'h29, 8'h2a, 8'h2b, 8'h2c},
-                    #{8'h31, 8'h32, 8'h33, 8'h34},
-                    #{8'h39, 8'h3a, 8'h3b, 8'h3c}
+                    #flat{8'h01, 8'h02, 8'h03, 8'h04},
+                    #flat{8'h09, 8'h0a, 8'h0b, 8'h0c},
+                    #flat{8'h11, 8'h12, 8'h13, 8'h14},
+                    #flat{8'h19, 8'h1a, 8'h1b, 8'h1c},
+                    #flat{8'h21, 8'h22, 8'h23, 8'h24},
+                    #flat{8'h29, 8'h2a, 8'h2b, 8'h2c},
+                    #flat{8'h31, 8'h32, 8'h33, 8'h34},
+                    #flat{8'h39, 8'h3a, 8'h3b, 8'h3c}
         }>>
         send ep_ri.req(aes_key_expand_in_pack::{
             key = *next_key;

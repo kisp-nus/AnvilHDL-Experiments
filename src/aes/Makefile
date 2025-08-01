@@ -1,6 +1,6 @@
 MODULE_NAME ?= top
 TOP_MODULE ?= $(MODULE_NAME)
-VERILATOR_FLAGS ?= --top $(MODULE_NAME) --runtime-debug
+VERILATOR_FLAGS ?= --top $(MODULE_NAME) -j 1
 
 TEST_DRIVER = sim_main.cpp
 

@@ -83,7 +83,7 @@ struct data_in_pack {
 
 chan aes_key_expand_ch{
     left init : (init_pack@#1) @#1 - @dyn,
-    left req : (aes_key_expand_in_pack@#1) @#1 - @#1,
+    left req : (aes_key_expand_in_pack@#1),
     right res : (aes_key_expand_out_pack@#1) @#req - @#req
 }
 
