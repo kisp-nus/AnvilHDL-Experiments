@@ -3,7 +3,7 @@
 // Wrapper for AES key expansion module
 aes_pkg::sp2v_e en,out_valid,out_ack;
   assign out_ack =  _ep_le_req_valid && (out_valid == aes_pkg::SP2V_HIGH) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
-  assign en = _ep_le_init_valid ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
+  assign en = _ep_le_req_valid ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
   
   // Simulate req_ack as always high for this simple test
   assign _ep_le_req_ack = 1'b1;
@@ -22,9 +22,9 @@ aes_pkg::sp2v_e en,out_valid,out_ack;
   // Pack output key
   always_comb begin
     for (int i = 0; i < 8; i++) begin
-      _ep_le_res_0[i*32 +: 32] = key_output[0][i];
+      _ep_le_res_0[((i*32)+1) +: 32] = key_output[0][i];
     end
-    _ep_le_res_0[256] = 1'b0; // err_o
+    _ep_le_res_0[0] = 1'b0; // err_o
   end
 
    aes_key_expand #(
@@ -40,7 +40,7 @@ aes_pkg::sp2v_e en,out_valid,out_ack;
     .prd_we_i (1'b0),
     .out_req_o (out_valid),
     .out_ack_i (out_ack),
-    .clear_i (_ep_le_init_0[0]),
+    .clear_i (_ep_le_init_valid),
     .round_i (_ep_le_req_0[5+:4]),
     .key_len_i(aes_pkg::AES_128),
     .key_i(key_input),

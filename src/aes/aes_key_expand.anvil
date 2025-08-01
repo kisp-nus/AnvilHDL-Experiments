@@ -7,10 +7,16 @@ import "aes_pkg.anvilh"
 // }
 
 func aes_sub_word(data_in : logic[32]) {
-    let b0 = sbox_in::{data=data_in[0+:8]; op = ciph_op_e::CIPH_FWD};
-    let b1 = sbox_in::{data=data_in[8+:8]; op = ciph_op_e::CIPH_FWD};
-    let b2 = sbox_in::{data=data_in[16+:8]; op = ciph_op_e::CIPH_FWD};
-    let b3 = sbox_in::{data=data_in[24+:8]; op = ciph_op_e::CIPH_FWD};
+    
+    let b0 = sbox_in::{data=data_in[0+:8]; op = ciph_op_e::CIPH_FWD} >>
+    let b1 = sbox_in::{data=data_in[8+:8]; op = ciph_op_e::CIPH_FWD} >>
+    let b2 = sbox_in::{data=data_in[16+:8]; op = ciph_op_e::CIPH_FWD} >>
+    let b3 = sbox_in::{data=data_in[24+:8]; op = ciph_op_e::CIPH_FWD} >>
+
+
+    // dprint "sbox_in: %h, %h, %h, %h" (b0.data, b1.data, b2.data, b3.data) >>
+
+
 
     send sch0_ri.req(b0) >>
     let b0_o = recv sch0_ri.res >>
@@ -20,6 +26,7 @@ func aes_sub_word(data_in : logic[32]) {
     let b2_o = recv sch2_ri.res >>
     send sch3_ri.req(b3) >>
     let b3_o = recv sch3_ri.res >>
+    // dprint "sbox_out: %h, %h, %h, %h" (b0_o, b1_o, b2_o, b3_o) >>
     #flat{b3_o, b2_o, b1_o, b0_o}
 }
 
@@ -83,7 +90,7 @@ func expand_key(data_in : aes_key_expand_in_pack) {
     } >>
     
     let rcon_add_out = match use_rcon {
-        1'b1 => sub_word_out[0+:8] ^ *rcon,
+        1'b1 => sub_word_out[0+:8] ^ (*rcon),
         _ => sub_word_out[0+:8]
     } >>
     
@@ -99,6 +106,7 @@ func expand_key(data_in : aes_key_expand_in_pack) {
                     let w1 = w0 ^ key[1];
                     let w2 = w1 ^ key[2];
                     let w3 = w2 ^ key[3];
+                    // dprint "sub word out = %h | rcon_add_out = %h | rot_word_out = %h" (sub_word_out,rcon_add_out, rot_word_out) >>
                     #{key[3], key[2], key[1], key[0], w3, w2, w1, w0}
                 },
                 ciph_op_e::CIPH_INV => {
@@ -150,6 +158,7 @@ func expand_key(data_in : aes_key_expand_in_pack) {
             key
         }
     }>>
+    
     // call print_encryption_key(out) >>
     out
 

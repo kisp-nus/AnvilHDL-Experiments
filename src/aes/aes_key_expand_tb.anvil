@@ -1,7 +1,7 @@
 import "aes_key_expand.anvil"
 func print_enc_key(key_pack : logic[8][32]) {
     generate(i : 0, 7, 1){
-        dprint "[KETB Key Row %d] %h, %h, %h, %h" (i,key_pack[i][24+:8], key_pack[i][16+:8], key_pack[i][8+:8], key_pack[i][0+:8])
+        dprint "[Cycle %d] [KETB Key Row %d] %h, %h, %h, %h" (*counter, i,key_pack[i][24+:8], key_pack[i][16+:8], key_pack[i][8+:8], key_pack[i][0+:8])
     }
 }
 proc aes_key_expand_tb(){
@@ -16,7 +16,6 @@ proc aes_key_expand_tb(){
     loop{
         dprint "[cycle %d] Sending request to AES key expansion" (*counter);
         send ep_ri.init(init_pack::{key_len = key_len_e::KEY_LEN_128; op = ciph_op_e::CIPH_FWD}) >>
-        
         set next_key := #{
                     #flat{8'h01, 8'h02, 8'h03, 8'h04},
                     #flat{8'h09, 8'h0a, 8'h0b, 8'h0c},
@@ -26,7 +25,7 @@ proc aes_key_expand_tb(){
                     #flat{8'h29, 8'h2a, 8'h2b, 8'h2c},
                     #flat{8'h31, 8'h32, 8'h33, 8'h34},
                     #flat{8'h39, 8'h3a, 8'h3b, 8'h3c}
-        }>>
+        }>>        
         send ep_ri.req(aes_key_expand_in_pack::{
             key = *next_key;
             round = 4'd0;
