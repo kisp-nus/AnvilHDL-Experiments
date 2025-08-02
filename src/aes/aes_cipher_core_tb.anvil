@@ -2,7 +2,7 @@ import "aes_cipher_core.anvil"
 
 func print_state(state : logic[4][4][8]) {
    generate(i : 0, 3, 1){
-        dprint "[Row %d] %h, %h, %h, %h" (i, state[i][0], state[i][1], state[i][2], state[i][3])
+        dprint "[Row %d] %h, %h, %h, %h" (i, state[i][3], state[i][2], state[i][1], state[i][0])
    }
    
 }
@@ -40,6 +40,8 @@ proc aes_cipher_core_tb(){
                     #{8'h09, 8'h0a, 8'h0b, 8'h0c},
                     #{8'h0d, 8'h0e, 8'h0f, 8'h10}
                 };
+
+        call print_state(inp) >>
 
         send ep_ri.crypt(inp) >>
         send ep_ri.key_pack(key) >>

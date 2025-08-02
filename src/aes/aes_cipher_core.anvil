@@ -63,17 +63,14 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                 let key_init = recv ep.key_pack >>
                 let key_len = recv ep.key_len_i >>
                 send key_ri.init(init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}) >>
-                set key := key_init >>
+                set dec_key := key_init >>
                 //Cycle 1 - 10 Rounds
 
                 generate_seq (i : 0, 9, 1){
-                    send key_ri.req(aes_key_expand_in_pack::{key = *key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
+                    send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
                     let key_out_pack = recv key_ri.res >>
-                    set key := key_out_pack.key
+                    set dec_key := key_out_pack.key
                 } >>
-                //Cycle 11 (Final Round Storing state)
-                set dec_key := *key >>
-                //Cycle 12 (Output)
                 send ep.res(aes_core_out_pack::{state_o = *cipher_state;
                                                     // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
                                                     //                     #{8'd0, 8'd0,8'd0, 8'd0},
@@ -104,105 +101,192 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                     } >>
                     {set cipher_state := data_in;
                     set key := key_init} >>
+
+                    match ctrl_in.op_i {
+                        ciph_op_e::CIPH_FWD => {
                     
-                    // dprint "[Cycle %d] Initialization" (*cycle_count);
+                            //----------------- Cycle 1 Round 0----------------
+                            send key_ri.req(aes_key_expand_in_pack::{key = *key; round = 4'd0; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
+                            let key_out_pack = recv key_ri.res >> 
+                            
+                            let key_word_lin = *key[0+:4];
+                            let key_word = call create_byte_pack(key_word_lin);
 
+                            let key_bytes_normal = call transpose(key_word);
+                            let key_bytes = key_bytes_normal; // No key mix for round 0
+                        {set cipher_state := call add_rk(*cipher_state , key_bytes);
+                            set key := key_out_pack.key} >> // do checks on error of the out pack
+                            // dprint "[Cycle %d] Round 0" (*cycle_count);
+                            // call print_cipher_state(*cipher_state) >>
 
-                    //----------------- Cycle 1 Round 0----------------
-                    send key_ri.req(aes_key_expand_in_pack::{key = *key; round = 4'd0; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
-                    let key_out_pack = recv key_ri.res >> 
+                            // -------------Cycle 2-10 (Rounds)----------------
+                            generate_seq (i : 1, 9,1){
+                                // Key Gen
+                                send key_ri.req(aes_key_expand_in_pack::{key = *key; round = i; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
+                                let key_out_pack = recv key_ri.res >>
+                                let key_out = key_out_pack.key; // do checks on error of the out pack
+
+                                // Sub Bytes
+                                send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+                                let sub_bytes_out = recv sub_bytes_ri.res >>
+                                // dprint "[Cycle %d] Round %d : sub_bytes_out[row 0]: %h, %h, %h, %h" (*cycle_count, i, sub_bytes_out[0][0], sub_bytes_out[0][1], sub_bytes_out[0][2], sub_bytes_out[0][3]) >>
+                                
+                                // Shift Rows
+                                send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
+                                let shift_rows_out = recv shift_rows_ri.res >>
                     
-                    let key_word_lin = *key[0+:4];
-                    let key_word = call create_byte_pack(key_word_lin);
-
-                    let key_bytes_normal = call transpose(key_word);
-                    let key_bytes = key_bytes_normal; // No key mix for round 0
-                {set cipher_state := call add_rk(*cipher_state , key_bytes);
-                    set key := key_out_pack.key} >> // do checks on error of the out pack
-                    // dprint "[Cycle %d] Round 0" (*cycle_count);
-                    // call print_cipher_state(*cipher_state) >>
-
-                    // -------------Cycle 2-10 (Rounds)----------------
-                    generate_seq (i : 1, 9,1){
-                        // Key Gen
-                        send key_ri.req(aes_key_expand_in_pack::{key = *key; round = i; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
-                        let key_out_pack = recv key_ri.res >>
-                        let key_out = key_out_pack.key; // do checks on error of the out pack
-
-                        // Sub Bytes
-                        send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
-                        let sub_bytes_out = recv sub_bytes_ri.res >>
-                        // dprint "[Cycle %d] Round %d : sub_bytes_out[row 0]: %h, %h, %h, %h" (*cycle_count, i, sub_bytes_out[0][0], sub_bytes_out[0][1], sub_bytes_out[0][2], sub_bytes_out[0][3]) >>
-                        
-                        // Shift Rows
-                        send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
-                        let shift_rows_out = recv shift_rows_ri.res >>
-            
-                        // Mix Columns
-                        send mix_col_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
+                                // Mix Columns
+                                send mix_col_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
 
 
-                        let mix_col_out : logic[4][4][8] = recv mix_col_ri.res >>
-                        // dprint "[Cycle %d] Round %d : mix_col_out[row 0]: %h, %h, %h, %h" (*cycle_count, i,mix_col_out[0][0], mix_col_out[0][1], mix_col_out[0][2], mix_col_out[0][3]) >>
+                                let mix_col_out : logic[4][4][8] = recv mix_col_ri.res >>
+                                // dprint "[Cycle %d] Round %d : mix_col_out[row 0]: %h, %h, %h, %h" (*cycle_count, i,mix_col_out[0][0], mix_col_out[0][1], mix_col_out[0][2], mix_col_out[0][3]) >>
 
 
-                        // Add Round Key
-                        let key_word_lin= *key[0+:4];
-                        let key_word = call create_byte_pack(key_word_lin);
-                        let key_bytes_normal = call transpose(key_word);
-                        let key_bytes = match ctrl_in.op_i{
-                            ciph_op_e::CIPH_FWD => key_bytes_normal ,
-                            _ => (
-                                send key_mix_ri.req(data_in_pack::{data = key_bytes_normal; op = ciph_op_e::CIPH_INV}) >>
-                                let key_bytes_t = recv key_mix_ri.res >>
-                                key_bytes_t
-                            )
-                        } >>
-                        let add_rk_out = call add_rk(mix_col_out,key_bytes);
-                        set cipher_state := add_rk_out;
-                        set key := key_out
-                    }>>
+                                // Add Round Key
+                                let key_word_lin= *key[0+:4];
+                                let key_word = call create_byte_pack(key_word_lin);
+                                let key_bytes_normal = call transpose(key_word);
+                                let key_bytes = match ctrl_in.op_i{
+                                    ciph_op_e::CIPH_FWD => key_bytes_normal ,
+                                    ciph_op_e::CIPH_INV => {
+                                        send key_mix_ri.req(data_in_pack::{data = key_bytes_normal; op = ciph_op_e::CIPH_INV}) >>
+                                        let key_bytes_t = recv key_mix_ri.res >>
+                                        key_bytes_t
+                                    },
+                                    _ => {
+                                        dprint "Invalid operation" ();
+                                        key_bytes_normal
 
-                    // -------------Cycle 11 (Final Round)----------------
+                                    }
+                                } >>
+                            
+                                let add_rk_out = call add_rk(mix_col_out,key_bytes) >>
+                                {set cipher_state := add_rk_out;
+                                set key := key_out} >>
+                                ()
+                            }>>
 
-                    //Sub Bytes
-                    send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
-                    let sub_bytes_out = recv sub_bytes_ri.res >>
+                            // -------------Cycle 11 (Final Round)----------------
+
+                            //Sub Bytes
+                            send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+                            let sub_bytes_out = recv sub_bytes_ri.res >>
 
 
-                    //Shift Rows
-                    send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
-                    let shift_rows_out = recv shift_rows_ri.res >>
+                            //Shift Rows
+                            send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
+                            let shift_rows_out = recv shift_rows_ri.res >>
 
-                    //Add Round Key
-                    let key_word_lin = *key[0+:4] >>
-                    let key_word = call create_byte_pack(key_word_lin) >>
-                    let key_bytes_normal = call transpose(key_word) >>
-                    let key_bytes = match ctrl_in.op_i{
-                        ciph_op_e::CIPH_FWD => key_bytes_normal,
-                        _ => (
-                            send key_mix_ri.req(data_in_pack::{data = key_bytes_normal; op = ciph_op_e::CIPH_INV}) >>
-                            let key_bytes = recv key_mix_ri.res >>
-                            key_bytes
-                        )
-                    } >>
-                    set cipher_state := call add_rk(shift_rows_out,key_bytes) >>
+                            //Add Round Key
+                            let key_word_lin = *key[0+:4] >>
+                            let key_word = call create_byte_pack(key_word_lin) >>
+                            let key_bytes_normal = call transpose(key_word) >>
+                            let key_bytes = match ctrl_in.op_i{
+                                ciph_op_e::CIPH_FWD => key_bytes_normal,
+                                _ => (
+                                    send key_mix_ri.req(data_in_pack::{data = key_bytes_normal; op = ciph_op_e::CIPH_INV}) >>
+                                    let key_bytes = recv key_mix_ri.res >>
+                                    key_bytes
+                                )
+                            } >>
+                            set cipher_state := call add_rk(shift_rows_out,key_bytes) >>
 
-                    // -------------Cycle 12 (Output)----------------
-                    send ep.res(aes_core_out_pack::{state_o = *cipher_state;
-                                                    // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
-                                                    //                     #{8'd0, 8'd0,8'd0, 8'd0},
-                                                    //                     #{8'd0, 8'd0,8'd0, 8'd0},
-                                                    //                     #{8'd0, 8'd0,8'd0, 8'd0}};
-                                                    // alert_o = 1'd0; //To:Do fix this
-                                                    // data_out_clear_o = ctrl_in.data_out_clear_i;
-                                                    // key_clear_o = ctrl_in.key_clear_i;
-                                                    // prng_reseed_o = ctrl_in.prng_reseed_i;
-                                                    dec_key_gen_o = sp2v_e::SP2V_LOW;
-                                                    crypt_o = sp2v_e::SP2V_HIGH}) >>
-                    cycle 1
+                            // -------------Cycle 12 (Output)----------------
+                            send ep.res(aes_core_out_pack::{state_o = *cipher_state;
+                                                            // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0}};
+                                                            // alert_o = 1'd0; //To:Do fix this
+                                                            // data_out_clear_o = ctrl_in.data_out_clear_i;
+                                                            // key_clear_o = ctrl_in.key_clear_i;
+                                                            // prng_reseed_o = ctrl_in.prng_reseed_i;
+                                                            dec_key_gen_o = sp2v_e::SP2V_LOW;
+                                                            crypt_o = sp2v_e::SP2V_HIGH}) >>
+                            cycle 1
+                        },
+                        ciph_op_e::CIPH_INV => {
+                            //----------------- Cycle 1 Round 0----------------
+                            send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = 4'd0; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
+                            let key_out_pack = recv key_ri.res >> 
+                            
+                            let key_word_lin = *dec_key[0+:4] >>
+                            let key_word = call create_byte_pack(key_word_lin) >>
+
+                            let key_bytes_normal = call transpose(key_word) >>
+                            let key_bytes = key_bytes_normal >>
+                            let add_rk_out = call add_rk(*cipher_state , key_bytes) >>
+                            
+                            send shift_rows_ri.req(data_in_pack::{data = add_rk_out; op = ciph_op_e::CIPH_INV}) >>
+                            let shift_rows_out = recv shift_rows_ri.res >>
+
+                            send sub_bytes_ri.req(data_in_pack::{data = shift_rows_out; op = ciph_op_e::CIPH_INV}) >>
+                            let sub_bytes_out = recv sub_bytes_ri.res >>
+
+
+                            {set cipher_state := sub_bytes_out;
+                                set dec_key := key_out_pack.key} >>
+
+                            // Rounds 1-9
+                            generate_seq (i : 1, 9, 1){
+                                // Key Gen
+                                send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_INV; key_len = key_len}}) >>
+                                let key_out_pack = recv key_ri.res >>
+
+                                let key_word_lin = *dec_key[0+:4] >>
+                                let key_word = call create_byte_pack(key_word_lin) >>
+
+                                let key_bytes_normal = call transpose(key_word) >>
+                                let key_bytes = key_bytes_normal >>
+
+                                let add_rk_out = call add_rk(*cipher_state , key_bytes) >>
+
+                                send mix_col_ri.req(data_in_pack::{data = add_rk_out; op = ciph_op_e::CIPH_INV}) >>
+                                let inv_mix_col_out : logic[4][4][8] = recv mix_col_ri.res >>
+
+                                send shift_rows_ri.req(data_in_pack::{data = inv_mix_col_out; op = ciph_op_e::CIPH_INV}) >>
+                                let shift_rows_out = recv shift_rows_ri.res >>
+
+                                send sub_bytes_ri.req(data_in_pack::{data = shift_rows_out; op = ciph_op_e::CIPH_INV}) >>
+                                let sub_bytes_out = recv sub_bytes_ri.res >>
+
+
+                                {set cipher_state := sub_bytes_out;
+                                    set dec_key := key_out_pack.key} >>
+                                    ()
+                            } >>
+                            // Final Round
+                            let key_word_lin = *dec_key[0+:4] >>
+                            let key_word = call create_byte_pack(key_word_lin) >>
+                            let key_bytes_normal = call transpose(key_word) >>
+                            let key_bytes = key_bytes_normal >>
+                            set cipher_state := call add_rk(*cipher_state , key_bytes) >>
+
+                            send ep.res(aes_core_out_pack::{
+                                state_o = *cipher_state;
+                                // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
+                                //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                //                     #{8'd0, 8'd0,8'd0, 8'd0}};
+                                // alert_o = 1'd0; //To:Do fix this
+                                // data_out_clear_o = ctrl_in.data_out_clear_i;
+                                // key_clear_o = ctrl_in.key_clear_i;
+                                // prng_reseed_o = ctrl_in.prng_reseed_i;
+                                dec_key_gen_o = sp2v_e::SP2V_HIGH;
+                                crypt_o = sp2v_e::SP2V_LOW}) >>
+                                cycle 1
+
+
+
+                        },
+                        _ => {
+                            dprint "Invalid operation _" () >>
+                            cycle 1
+                        } 
+                    }
                 }
-                else {
+                else {  
                     cycle 1
                 }
             }
