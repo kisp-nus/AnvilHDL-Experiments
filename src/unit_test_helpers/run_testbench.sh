@@ -1,11 +1,9 @@
 #!/bin/bash
 
 
-# Usage: ./run_testbench.sh <testbench_name> [timeout_cycles]
-
 set -e
 
-# Configuration
+
 DEFAULT_TIMEOUT=10000
 
 
@@ -24,10 +22,9 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 show_usage() {
     echo "Usage: $0 <testbench_name> [timeout_cycles]"
     echo ""
-    echo "Examples:"
-    echo "  $0 aes_key_expand_tb"
-    echo "  $0 aes_key_expand_tb 20000"
-    echo "  $0 my_custom_tb 5000"
+    echo "Example:"
+    echo "  $0 -d <dependencies> -in TESTBENCH_NAME -t TIMEOUT"
+    echo "  $0 --help"
 }
 
 
@@ -37,8 +34,64 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-TESTBENCH_NAME="$1"
-TIMEOUT="${2:-$DEFAULT_TIMEOUT}"
+TESTBENCH_NAME=""
+TIMEOUT="$DEFAULT_TIMEOUT"
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --help|-h)
+            show_usage
+            exit 0
+            ;;
+        -d)
+            shift
+            if [[ $# -lt 1 ]]; then
+                log_error "Missing dependencies argument"
+                show_usage
+                exit 1
+            fi
+            AES_DEPS_IN="$1"
+            IFS=',' read -r -a AES_DEPS_LIST <<< "$AES_DEPS_IN"
+            shift
+            ;;
+        -in)
+            shift
+            if [[ $# -lt 1 ]]; then
+                log_error "Missing input file argument"
+                show_usage
+                exit 1
+            fi
+            TESTBENCH_FILE="$1"
+            shift
+            ;;
+        -t)
+            shift
+            if [[ $# -lt 1 ]]; then
+                log_error "Missing timeout argument"
+                show_usage
+                exit 1
+            fi
+            TIMEOUT="$1"
+            shift
+            ;;
+        *)
+            if [[ -z "$TESTBENCH_NAME" ]]; then
+                TESTBENCH_NAME="$1"
+            else
+                TIMEOUT="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+
+if [[ -z "$TESTBENCH_NAME" ]]; then
+    log_error "Missing testbench name"
+    show_usage
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RTL_DIR="$SCRIPT_DIR"
 
@@ -47,14 +100,9 @@ log_info "Testbench: $TESTBENCH_NAME"
 log_info "Timeout: $TIMEOUT cycles"
 
 
-TESTBENCH_FILE=""
-for ext in ".sv" ".anvil.sv" "_tb.sv" "_tb.anvil.sv"; do
-    if [[ -f "$RTL_DIR/${TESTBENCH_NAME}${ext}" ]]; then
-        TESTBENCH_FILE="$RTL_DIR/${TESTBENCH_NAME}${ext}"
-        break
-    fi
-done
+TESTBENCH_FILE=${TESTBENCH_NAME}.anvil.sv
 
+cp ../../../../../src/aes/"$TESTBENCH_FILE" "$RTL_DIR"
 if [[ -z "$TESTBENCH_FILE" ]]; then
     log_error "Could not find testbench file for '$TESTBENCH_NAME'"
     exit 1
@@ -143,8 +191,8 @@ if grep -q "aes_" "$TESTBENCH_FILE"; then
         "aes_sbox_lut.sv"
         "aes_sbox_canright.sv"
         "aes_sbox.sv"
-        "aes_key_expand.sv"
     )
+    AES_DEPS+=("${AES_DEPS_LIST[@]}")
     
     for dep in "${AES_DEPS[@]}"; do
         if [[ -f "$RTL_DIR/$dep" ]]; then
@@ -231,7 +279,7 @@ cd "$BUILD_DIR"
 
 VFLAGS="--cc --exe --build --top $TESTBENCH_NAME -j 4"
 VFLAGS="$VFLAGS -Wall -Wno-PINCONNECTEMPTY -Wno-ASSIGNDLY -Wno-DECLFILENAME"
-VFLAGS="$VFLAGS -Wno-UNUSED -Wno-UNOPTFLAT -Wno-WIDTHCONCAT -Wno-WIDTHEXPAND"
+VFLAGS="$VFLAGS -Wno-UNUSED -Wno-UNDRIVEN -Wno-UNOPTFLAT -Wno-WIDTHCONCAT -Wno-WIDTHEXPAND"
 VFLAGS="$VFLAGS -Wno-LITENDIAN -Wno-UNPACKED -I$RTL_DIR"
 
 if verilator $VFLAGS "${SV_FILES[@]}" sim_main.cpp; then
