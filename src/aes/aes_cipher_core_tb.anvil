@@ -50,8 +50,8 @@ proc aes_cipher_core_tb(){
             cfg_valid_i = 1'd1;
             op_i = ciph_op_e::CIPH_FWD
         }) >>
+        dprint "[cycle %d] Waiting for response from AES core encryption test" (*counter) >>
         let cipher_text = recv ep_ri.res >>
-        
         dprint "[cycle %d] Received response from AES core encryption test" (*counter);
 
         call print_state(cipher_text.state_o) >>
