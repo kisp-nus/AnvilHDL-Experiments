@@ -9,7 +9,7 @@ all: obj_dir/V$(MODULE_NAME)
 .PHONY: run clean
 
 ifdef LTOFF
-    ANVIL_FLAGS = -disable-lt-checks -O 0
+    ANVIL_FLAGS = -disable-lt-checks
 else
     ANVIL_FLAGS =
 endif
