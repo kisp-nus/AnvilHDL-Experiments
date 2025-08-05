@@ -23,7 +23,7 @@ proc aes_cipher_core_tb(){
         set counter := *counter + 32'd1
     }
     loop{
-        dprint "[cycle %d] Sending request to aeS core"  (*counter);
+        dprint "==============[cycle %d] Sending AES_128 request to aeS core==============="  (*counter) >>
         let key = #{
                     #flat{8'h01, 8'h02, 8'h03, 8'h04},
                     #flat{8'h09, 8'h0a, 8'h0b, 8'h0c},
@@ -33,13 +33,93 @@ proc aes_cipher_core_tb(){
                     #flat{8'h29, 8'h2a, 8'h2b, 8'h2c},
                     #flat{8'h31, 8'h32, 8'h33, 8'h34},
                     #flat{8'h39, 8'h3a, 8'h3b, 8'h3c}
-                };
+                } >>
         let inp = #{
                     #{8'h0d, 8'h0e, 8'h0f, 8'h10},
                     #{8'h09, 8'h0a, 8'h0b, 8'h0c},
                     #{8'h05, 8'h06, 8'h07, 8'h08},
                     #{8'h01, 8'h02, 8'h03, 8'h04}
-                };
+                } >>
+
+        call print_state(inp) >>
+
+        send ep_ri.crypt(inp) >>
+        send ep_ri.key_pack(key) >>
+        send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
+        send ep_ri.ctrl(aes_control_pack::{
+            cfg_valid_i = 1'd1;
+            op_i = ciph_op_e::CIPH_FWD
+        }) >>
+        
+        let cipher_text = recv ep_ri.res >>
+        dprint "======================[cycle %d] Received response from AES core encryption test for AES 128==============" (*counter) >>
+
+        call print_state(cipher_text.state_o) >>
+
+        set next_inp := cipher_text.state_o >>
+        
+        let key = #{
+                    #flat{8'h01, 8'h02, 8'h03, 8'h04},
+                    #flat{8'h09, 8'h0a, 8'h0b, 8'h0c},
+                    #flat{8'h11, 8'h12, 8'h13, 8'h14},
+                    #flat{8'h19, 8'h1a, 8'h1b, 8'h1c},
+                    #flat{8'h21, 8'h22, 8'h23, 8'h24},
+                    #flat{8'h29, 8'h2a, 8'h2b, 8'h2c},
+                    #flat{8'h31, 8'h32, 8'h33, 8'h34},
+                    #flat{8'h39, 8'h3a, 8'h3b, 8'h3c}
+                } >>
+
+        send ep_ri.dec_key_gen_req(1'd1) >>
+        send ep_ri.key_pack(key) >>
+        send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
+
+        
+
+
+        let _ = recv ep_ri.res >>
+        
+        
+        dprint "[cycle %d] Decryption Key is generated" (*counter) >>
+
+        cycle 1 >>
+
+
+        dprint "================[cycle %d] Sending request to AES core for decryption=======" (*counter) >>
+
+        send ep_ri.crypt(*next_inp) >>
+        send ep_ri.key_pack(key) >>
+        send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
+        send ep_ri.ctrl(aes_control_pack::{
+            cfg_valid_i = 1'd1;
+            op_i = ciph_op_e::CIPH_INV
+        }) >>
+
+        
+        let dec_cipher_text = recv ep_ri.res >>
+        dprint "================[cycle %d] Received response from AES core decryption test for AES 128=======" (*counter) >>
+        call print_state(dec_cipher_text.state_o) >>
+        
+
+        cycle 5 >>
+
+
+        dprint "==============[cycle %d] Sending AES_256 request to aeS core==============="  (*counter) >>
+        let key = #{
+                    #flat{8'h01, 8'h02, 8'h03, 8'h04},
+                    #flat{8'h09, 8'h0a, 8'h0b, 8'h0c},
+                    #flat{8'h11, 8'h12, 8'h13, 8'h14},
+                    #flat{8'h19, 8'h1a, 8'h1b, 8'h1c},
+                    #flat{8'h21, 8'h22, 8'h23, 8'h24},
+                    #flat{8'h29, 8'h2a, 8'h2b, 8'h2c},
+                    #flat{8'h31, 8'h32, 8'h33, 8'h34},
+                    #flat{8'h39, 8'h3a, 8'h3b, 8'h3c}
+                } >>
+        let inp = #{
+                    #{8'h0d, 8'h0e, 8'h0f, 8'h10},
+                    #{8'h09, 8'h0a, 8'h0b, 8'h0c},
+                    #{8'h05, 8'h06, 8'h07, 8'h08},
+                    #{8'h01, 8'h02, 8'h03, 8'h04}
+                } >>
 
         call print_state(inp) >>
 
@@ -50,9 +130,9 @@ proc aes_cipher_core_tb(){
             cfg_valid_i = 1'd1;
             op_i = ciph_op_e::CIPH_FWD
         }) >>
-        dprint "[cycle %d] Waiting for response from AES core encryption test" (*counter) >>
+        
         let cipher_text = recv ep_ri.res >>
-        dprint "[cycle %d] Received response from AES core encryption test" (*counter);
+        dprint "======================[cycle %d] Received response from AES core encryption test for AES 256==============" (*counter) >>
 
         call print_state(cipher_text.state_o) >>
 
@@ -72,15 +152,19 @@ proc aes_cipher_core_tb(){
         send ep_ri.dec_key_gen_req(1'd1) >>
         send ep_ri.key_pack(key) >>
         send ep_ri.key_len_i(key_len_e::KEY_LEN_256) >>
+
         
 
 
         let _ = recv ep_ri.res >>
         
         
-        dprint "[cycle %d] Received response from AES core decryption key req" (*counter);
+        dprint "[cycle %d] Decryption Key is generated" (*counter) >>
 
         cycle 1 >>
+
+
+        dprint "================[cycle %d] Sending request to AES core for decryption=======" (*counter) >>
 
         send ep_ri.crypt(*next_inp) >>
         send ep_ri.key_pack(key) >>
@@ -90,10 +174,10 @@ proc aes_cipher_core_tb(){
             op_i = ciph_op_e::CIPH_INV
         }) >>
 
+        
         let dec_cipher_text = recv ep_ri.res >>
+        dprint "================[cycle %d] Received response from AES core decryption test for AES 256=======" (*counter) >>
         call print_state(dec_cipher_text.state_o) >>
-
-        cycle 10 >>
         
 
        dfinish >>
