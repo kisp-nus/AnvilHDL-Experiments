@@ -29,10 +29,8 @@ struct r_pack<T : type> {
     data : T
 }
 chan spill_ch<T : type> {
-  left rdy : (logic[1]@#1),
-  right req : (T@#1), // @dyn - @#rdy sync pattern to say the other side can send it anytime, but this party is ready to recieve immediately
-  left res : (T@spill), // @f.drain - @dyn sync pattern to say there will be a valid but we dont care if the other side acks it
-  right spill : (logic[1]@#1) // @dyn - @res
+    left req : (T@#1),
+    right res : (T@#1)
 }
 chan slave_ch<T :type , A : type , select_t:int> {
     left slv_req_aw : (aw_pack<A, select_t>@#1),
@@ -49,10 +47,133 @@ chan master_ch<T : type , A : type> {
     left mst_r_resp : (r_pack<T>@#1)
 }
 
-proc spill_reg<T : type, BYPASS : int> (ep : right spill_ch<T>) {
-
+proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
+    reg full : logic[2];
+    reg spreg : T[2];
     loop {
-        cycle 1
+    
+        let a_full = *full[0];
+        let b_full = *full[1];
+        let a_q = *spreg[0];
+        let b_q = *spreg[1];
+        let ready_o = (*full != 2'b11);
+        let a_drain = (a_full & (~ b_full));
+        let valid_o = (a_full | b_full) >>
+        
+        if ((ready_o) == 1'd1) {
+            try a = recv ep.req {
+                
+                // a_fill - 1'b1
+                set spreg[0] := a;
+                set full[0] := 1'b1;
+                
+                if (valid_o) {
+                    let resp = if (b_full) {
+                        b_q
+                    } else {
+                        a_q
+                    };
+                    
+                    try send ep.res(resp) {
+                        //ready_i = 1
+                        // b_fill = 0
+                        // b_drain  = b_full
+                        if (b_full) {
+                            set full[1] := 1'b0
+                        }
+                        else{
+                            cycle 1
+                        }
+                    } else {
+                        //ready_i = 0
+                        //b_fill = a_drain
+                        //b_drain =0
+                        if (a_drain) {
+                            set spreg[1] := a_q;
+                            set full[1] := 1'd1
+                        }
+                        else{
+                            cycle 1
+                        }
+                    }
+                }
+                else{
+                    cycle 1
+                }
+            } else {
+                //a_fill =0 
+                if (a_drain) {
+                    set full[0] := 1'b0
+                }
+                else{
+                    cycle 1
+                };
+                if (valid_o) {
+                    let resp = if (b_full) {
+                        b_q
+                    } else {
+                        a_q
+                    };
+                    try send ep.res(resp) {
+                        //ready_i = 1
+                        //b_fill = 0
+                        //b_drain = b_full
+                        if (b_full) {
+                            set full[1] := 1'b0
+                        }
+                        else{
+                            cycle 1
+                        }
+                    } else {
+                        if (a_drain) {
+                            set spreg[1] := a_q;
+                            set full[1] := 1'd1
+                        }
+                        else{
+                            cycle 1
+                        }
+                    }
+                }
+                else{
+                    cycle 1
+                }
+            }
+        } else {
+            if (valid_o) {
+                let resp = if (b_full) {
+                    b_q
+                } else {
+                    a_q
+                };
+                try send ep.res(resp) {
+                    //ready_i = 1
+                    //b_fill = 0
+                    //b_drain = b_full
+                    if (b_full) {
+                        set full[1] := 1'b0
+                    }
+                    else{
+                        cycle 1
+                    }
+                }
+
+                else{
+                    if (a_drain) {
+                        set spreg[1] := a_q;
+                        set full[1] := 1'd1
+                    }
+                    else{
+                        cycle 1
+                    }
+                    
+                }
+            }
+            else{
+                cycle 1
+            }
+        }
+     
+        
     }
 }
 
