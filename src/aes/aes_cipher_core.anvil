@@ -131,12 +131,19 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
 
                                 //1 cycle done
 
-                            //----------------- Cycle 1 Round 0----------------
+                            //----------------- Cycle 1 Round 0----------------           
                             
-                            let key_word_lin = if ((ctrl_in.op_i == ciph_op_e::CIPH_INV) && (key_len == key_len_e::KEY_LEN_256)) {
-                                *key[4+:4]
-                            } else {
-                                *key[0+:4]
+                            let key_word_lin = match key_len{
+                                key_len_e::KEY_LEN_128 => *key[0+:4],
+                                key_len_e::KEY_LEN_256 => {
+                                    match ctrl_in.op_i {
+                                        ciph_op_e::CIPH_FWD => *key[0+:4],
+                                        _ => *key[4+:4]
+                                    }
+                                },
+                                _ => {
+                                    *key[0+:4]
+                                }
                             } >>
                             
                             let key_word = call create_byte_pack(key_word_lin) >>
@@ -151,8 +158,9 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                                     set key := key_out_pack.key
                                 },
                                 key_len_e::KEY_LEN_256 =>{
-                                    set cipher_state := call add_rk(*cipher_state , key_bytes);
-                                    set key := key_init_in
+                                    let add_rk = call add_rk(*cipher_state , key_bytes) >>
+                                    set cipher_state := add_rk;
+                                    set key := key_init
                                 },
                                 _ => {
                                     dprint "Unsupported key length" () >>
@@ -163,8 +171,6 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
 
                             // -------------Cycle 2-10 (Rounds)----------------
                             generate_seq (i : 1, 9,1){
-                                // Key Gen
-                                // call print_decryption_key(*key) >>
                                 send key_ri.req(aes_key_expand_in_pack::{key = *key; round = i; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
                                 let key_out_pack = recv key_ri.res >>
                                 let key_out = key_out_pack.key;
