@@ -66,10 +66,10 @@ cat > demux.flist << EOF
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/src/axi_lite_demux.sv
 EOF
 
-# Get the root directory
-ROOT=$(realpath "../")
 
-# Create the simulation main file
+ROOT=$(realpath "./")
+
+
 cat > "$ROOT/sim_main.cpp" << EOF
 #include <memory>
 #include <iostream>
@@ -133,13 +133,13 @@ int main(int argc, char** argv) {
 }
 EOF
 
-
+# Set up Verilator flags properly
 VERILATOR_FLAGS=(
     -Wno-fatal
     --cc
     --exe
     --build
-    --no-timing
+    --timing
     --top
     "$TESTBENCH_NAME"
     -j
@@ -160,10 +160,11 @@ VERILATOR_FLAGS=(
     -Wwarn-UNSUPPORTED
     -Wno-LITENDIAN
     -Wno-UNPACKED
+    -Wno-STMTDLY
     -I"$ROOT/include"
 )
 
-
+# Check if required files exist
 if [ ! -f "axi_pkg.sv" ]; then
     echo "Error: axi_pkg.sv not found in current directory"
     exit 1
@@ -174,11 +175,11 @@ if [ ! -f "axi_lite_demux.sv" ]; then
     exit 1
 fi
 
-
+# Run Verilator
 echo "Running Verilator with testbench: $TESTBENCH_NAME"
 echo "Timeout set to: $TIMEOUT cycles"
 
-
+# Check if testbench file exists
 if [ ! -f "${TESTBENCH_NAME}.sv" ]; then
     echo "Error: ${TESTBENCH_NAME}.sv not found in current directory"
     exit 1

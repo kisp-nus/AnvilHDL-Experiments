@@ -15,7 +15,7 @@ proc aes_key_expand_tb(){
     }
     loop{
         dprint "[cycle %d] Sending request to AES key expansion" (*counter);
-        send ep_ri.init(init_pack::{key_len = key_len_e::KEY_LEN_128; op = ciph_op_e::CIPH_INV}) >>
+        send ep_ri.init(init_pack::{key_len = key_len_e::KEY_LEN_256; op = ciph_op_e::CIPH_INV}) >>
         set next_key := #{
                     #flat{8'h01, 8'h02, 8'h03, 8'h04},
                     #flat{8'h09, 8'h0a, 8'h0b, 8'h0c},
@@ -26,17 +26,24 @@ proc aes_key_expand_tb(){
                     #flat{8'h31, 8'h32, 8'h33, 8'h34},
                     #flat{8'h39, 8'h3a, 8'h3b, 8'h3c}
         }>>        
-        send ep_ri.req(aes_key_expand_in_pack::{
+
+        generate_seq(i : 0, 13,1){
+            send ep_ri.req(aes_key_expand_in_pack::{
             key = *next_key;
-            round = 4'd0;
-            ctrl = init_pack::{key_len = key_len_e::KEY_LEN_128; op = ciph_op_e::CIPH_INV}
-        }) >>
-        let key_out = recv ep_ri.res >>
-        dprint "[cycle %d] Received response from AES key expansion test" (*counter);
-        call print_enc_key(key_out.key) >>
+            round = i;
+            ctrl = init_pack::{key_len = key_len_e::KEY_LEN_256; op = ciph_op_e::CIPH_INV}
+            })
+            >> 
+            let key_out = recv ep_ri.res >>
+            set next_key := key_out.key
+            
+        } >>
+
+
+        
+        call print_enc_key(*next_key) >>
         cycle 1 >>
         dfinish
-        
 
     }
 }

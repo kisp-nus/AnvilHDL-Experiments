@@ -5,35 +5,28 @@ import "aes_shift_rows.anvil"
 import "aes_mix_columns.anvil"
 import "aes_sub_bytes.anvil"
 
-func print_encryption_key(key : logic[8][32]){
-        dprint "[Cycle %d] [Enc Key Row 0] %h, %h, %h, %h" (*cycle_count ,key[0][24+:8], key[0][16+:8], key[0][8+:8], key[0][0+:8]) >>
-        dprint "[Cycle %d] [Enc Key Row 1] %h, %h, %h, %h" (*cycle_count ,key[1][24+:8], key[1][16+:8], key[1][8+:8], key[1][0+:8]) >>
-        dprint "[Cycle %d] [Enc Key Row 2] %h, %h, %h, %h" (*cycle_count ,key[2][24+:8], key[2][16+:8], key[2][8+:8], key[2][0+:8]) >>
-        dprint "[Cycle %d] [Enc Key Row 3] %h, %h, %h, %h" (*cycle_count ,key[3][24+:8], key[3][16+:8], key[3][8+:8], key[3][0+:8]) >>
-        dprint "[Cycle %d] [Enc Key Row 4] %h, %h, %h, %h" (*cycle_count ,key[4][24+:8], key[4][16+:8], key[4][8+:8], key[4][0+:8]) >>
-        dprint "[Cycle %d] [Enc Key Row 5] %h, %h, %h, %h" (*cycle_count ,key[5][24+:8], key[5][16+:8], key[5][8+:8], key[5][0+:8]) >>
-        dprint "[Cycle %d] [Enc Key Row 6] %h, %h, %h, %h" (*cycle_count ,key[6][24+:8], key[6][16+:8], key[6][8+:8], key[6][0+:8]) >>
-        dprint "[Cycle %d] [Enc Key Row 7] %h, %h, %h, %h" (*cycle_count ,key[7][24+:8], key[7][16+:8], key[7][8+:8], key[7][0+:8])
-}
-func print_decryption_key(key : logic[8][32]){
-        dprint "[Cycle %d] [Dec Key Row 0] %h, %h, %h, %h" (*cycle_count, key[0][24+:8], key[0][16+:8], key[0][8+:8], key[0][0+:8]) >>
-        dprint "[Cycle %d] [Dec Key Row 1] %h, %h, %h, %h" (*cycle_count, key[1][24+:8], key[1][16+:8], key[1][8+:8], key[1][0+:8]) >>
-        dprint "[Cycle %d] [Dec Key Row 2] %h, %h, %h, %h" (*cycle_count, key[2][24+:8], key[2][16+:8], key[2][8+:8], key[2][0+:8]) >>
-        dprint "[Cycle %d] [Dec Key Row 3] %h, %h, %h, %h" (*cycle_count, key[3][24+:8], key[3][16+:8], key[3][8+:8], key[3][0+:8]) >>
-        dprint "[Cycle %d] [Dec Key Row 4] %h, %h, %h, %h" (*cycle_count, key[4][24+:8], key[4][16+:8], key[4][8+:8], key[4][0+:8]) >>
-        dprint "[Cycle %d] [Dec Key Row 5] %h, %h, %h, %h" (*cycle_count, key[5][24+:8], key[5][16+:8], key[5][8+:8], key[5][0+:8]) >>
-        dprint "[Cycle %d] [Dec Key Row 6] %h, %h, %h, %h" (*cycle_count, key[6][24+:8], key[6][16+:8], key[6][8+:8], key[6][0+:8]) >>
-        dprint "[Cycle %d] [Dec Key Row 7] %h, %h, %h, %h" (*cycle_count, key[7][24+:8], key[7][16+:8], key[7][8+:8], key[7][0+:8])
-}
+// func print_encryption_key(key : logic[8][32]){
+//         dprint "[Cycle %d] [Enc Key Row 0] %h, %h, %h, %h" (*cycle_count ,key[0][24+:8], key[0][16+:8], key[0][8+:8], key[0][0+:8]) >>
+//         dprint "[Cycle %d] [Enc Key Row 1] %h, %h, %h, %h" (*cycle_count ,key[1][24+:8], key[1][16+:8], key[1][8+:8], key[1][0+:8]) >>
+//         dprint "[Cycle %d] [Enc Key Row 2] %h, %h, %h, %h" (*cycle_count ,key[2][24+:8], key[2][16+:8], key[2][8+:8], key[2][0+:8]) >>
+//         dprint "[Cycle %d] [Enc Key Row 3] %h, %h, %h, %h" (*cycle_count ,key[3][24+:8], key[3][16+:8], key[3][8+:8], key[3][0+:8]) >>
+//         dprint "[Cycle %d] [Enc Key Row 4] %h, %h, %h, %h" (*cycle_count ,key[4][24+:8], key[4][16+:8], key[4][8+:8], key[4][0+:8]) >>
+//         dprint "[Cycle %d] [Enc Key Row 5] %h, %h, %h, %h" (*cycle_count ,key[5][24+:8], key[5][16+:8], key[5][8+:8], key[5][0+:8]) >>
+//         dprint "[Cycle %d] [Enc Key Row 6] %h, %h, %h, %h" (*cycle_count ,key[6][24+:8], key[6][16+:8], key[6][8+:8], key[6][0+:8]) >>
+//         dprint "[Cycle %d] [Enc Key Row 7] %h, %h, %h, %h" (*cycle_count ,key[7][24+:8], key[7][16+:8], key[7][8+:8], key[7][0+:8])
+// }
+// func print_decryption_key(key : logic[8][32]){
+//         generate(i : 0, 7, 1){
+//             dprint "[Cycle %d] [Dec Key Row %d] %h, %h, %h, %h" (*cycle_count, i, key[i][24+:8], key[i][16+:8], key[i][8+:8], key[i][0+:8])
+//         }
+// }
 
 
-func print_cipher_state(cipher_state : logic[4][4][8]){
-    dprint "[Cycle %d] Cipher State" (*cycle_count);
-    dprint "[Cipher Row 0] %h, %h, %h, %h" (cipher_state[0][0], cipher_state[0][1], cipher_state[0][2], cipher_state[0][3]);
-    dprint "[Cipher Row 1] %h, %h, %h, %h" (cipher_state[1][0], cipher_state[1][1], cipher_state[1][2], cipher_state[1][3]);
-    dprint "[Cipher Row 2] %h, %h, %h, %h" (cipher_state[2][0], cipher_state[2][1], cipher_state[2][2], cipher_state[2][3]);
-    dprint "[Cipher Row 3] %h, %h, %h, %h" (cipher_state[3][0], cipher_state[3][1], cipher_state[3][2], cipher_state[3][3])
-}
+// func print_cipher_state(cipher_state : logic[4][4][8]){
+//     generate(i : 0, 3, 1){
+//         dprint "[Cycle %d] [Cipher State Row %d] %h, %h, %h, %h" (*cycle_count, i, cipher_state[i][3], cipher_state[i][2], cipher_state[i][1], cipher_state[i][0])
+//     }   
+// }
 
 
 proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
@@ -65,64 +58,113 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                 send key_ri.init(init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}) >>
                 set dec_key := key_init >>
                 //Cycle 1 - 10 Rounds
+                match key_len{
+                    key_len_e::KEY_LEN_128 =>{
 
-                generate_seq (i : 0, 8, 1){
-                    send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
-                    let key_out_pack = recv key_ri.res >>
-                    set dec_key := key_out_pack.key
-                } >>
-                send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = 4'd9; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
-                let key_out_pack = recv key_ri.res >>
-                send ep.res(aes_core_out_pack::{state_o = *cipher_state;
-                                                    // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
-                                                    //                     #{8'd0, 8'd0,8'd0, 8'd0},
-                                                    //                     #{8'd0, 8'd0,8'd0, 8'd0},
-                                                    //                     #{8'd0, 8'd0,8'd0, 8'd0}};
-                                                    // alert_o = 1'd0; //To:Do fix this
-                                                    // data_out_clear_o = 1'd0;
-                                                    // key_clear_o = 1'd0;
-                                                    // prng_reseed_o = 1'd0;
-                                                    crypt_o = sp2v_e::SP2V_LOW;
-                                                    dec_key_gen_o = sp2v_e::SP2V_HIGH}) >>
+                        generate_seq (i : 0, 8, 1){
+                                send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
+                                let key_out_pack = recv key_ri.res >>
                                 set dec_key := key_out_pack.key
-                                                    // {call print_encryption_key(*dec_key)} >>
-    
-
+                        } >>
+                        send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = 4'd9; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
+                        let key_out_pack = recv key_ri.res >>
+                        send ep.res(aes_core_out_pack::{state_o = *cipher_state;
+                                                            // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0}};
+                                                            // alert_o = 1'd0; //To:Do fix this
+                                                               // data_out_clear_o = 1'd0;
+                                                            // key_clear_o = 1'd0;
+                                                            // prng_reseed_o = 1'd0;
+                                                            crypt_o = sp2v_e::SP2V_LOW;
+                                                            dec_key_gen_o = sp2v_e::SP2V_HIGH}) >>
+                                                            
+                        set dec_key := key_out_pack.key
+                    },
+                    key_len_e::KEY_LEN_256 =>{
+                        set dec_key := key_init >>
+                        generate_seq (i : 1, 12, 1){
+                                send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
+                                let key_out_pack = recv key_ri.res >>
+                                set dec_key := key_out_pack.key
+                        } >>
+                        send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = 4'd13; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
+                        let key_out_pack = recv key_ri.res >>
+                        send ep.res(aes_core_out_pack::{state_o = *cipher_state;
+                                                            // data_in_mask_o = #{ #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0},
+                                                            //                     #{8'd0, 8'd0,8'd0, 8'd0}};
+                                                            // alert_o = 1'd0; //To:Do fix this
+                                                               // data_out_clear_o = 1'd0;
+                                                            // key_clear_o = 1'd0;
+                                                            // prng_reseed_o = 1'd0;
+                                                            crypt_o = sp2v_e::SP2V_LOW;
+                                                            dec_key_gen_o = sp2v_e::SP2V_HIGH}) >>
+                                                            // call print_decryption_key(key_out_pack.key) >>
+                                                            set dec_key := key_out_pack.key
+                    },
+                    _ => {
+                        dprint "Unsupported key length" () >>
+                        cycle 1
+                    }
+                }      
+                
             }
             else {
                 try data_in = recv ep.crypt{
 
-                    let key_init_in = recv ep.key_pack >>
-                    let key_len = recv ep.key_len_i >>
-                    let ctrl_in = recv ep.ctrl >>
+                                let key_init_in = recv ep.key_pack >>
+                                let key_len = recv ep.key_len_i >>
+                                let ctrl_in = recv ep.ctrl >>
 
-                    send key_ri.init(init_pack::{op = ctrl_in.op_i; key_len = key_len}) >>
+                                send key_ri.init(init_pack::{op = ctrl_in.op_i; key_len = key_len}) >>
 
-                    // -------------Cycle 0 (Initialization)----------------
-                    let key_init = match ctrl_in.op_i {
-                        ciph_op_e::CIPH_FWD => key_init_in,
-                        _ => *dec_key
-                    } >>
-                    {set cipher_state := data_in;
-                    set key := key_init} >>
-                    //1 cycle done
+                                // -------------Cycle 0 (Initialization)----------------
+                                let key_init = match ctrl_in.op_i {
+                                    ciph_op_e::CIPH_FWD => key_init_in,
+                                    _ => *dec_key
+                                } >>
+                                {set cipher_state := data_in;
+                                set key := key_init} >>
+
+                                //1 cycle done
 
                             //----------------- Cycle 1 Round 0----------------
-                            send key_ri.req(aes_key_expand_in_pack::{key = *key; round = 4'd0; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
-                            let key_out_pack = recv key_ri.res >> 
                             
-                            let key_word_lin = *key[0+:4];
-                            let key_word = call create_byte_pack(key_word_lin);
-
-                            let key_bytes_normal = call transpose(key_word);
-                            let key_bytes = key_bytes_normal; // No key mix for round 0
-                        {set cipher_state := call add_rk(*cipher_state , key_bytes);
-                            set key := key_out_pack.key} >> // do checks on error of the out pack
-                            // 2 cycles done
+                            let key_word_lin = if ((ctrl_in.op_i == ciph_op_e::CIPH_INV) && (key_len == key_len_e::KEY_LEN_256)) {
+                                *key[4+:4]
+                            } else {
+                                *key[0+:4]
+                            } >>
+                            
+                            let key_word = call create_byte_pack(key_word_lin) >>
+                            let key_bytes_normal = call transpose(key_word) >>
+                            let key_bytes = key_bytes_normal >>
+                            
+                            match key_len {
+                                key_len_e::KEY_LEN_128 =>{
+                                    send key_ri.req(aes_key_expand_in_pack::{key = *key; round = 4'd0; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
+                                    let key_out_pack = recv key_ri.res >>
+                                    set cipher_state := call add_rk(*cipher_state , key_bytes); 
+                                    set key := key_out_pack.key
+                                },
+                                key_len_e::KEY_LEN_256 =>{
+                                    set cipher_state := call add_rk(*cipher_state , key_bytes);
+                                    set key := key_init_in
+                                },
+                                _ => {
+                                    dprint "Unsupported key length" () >>
+                                    cycle 1
+                                }
+                            } >>
+                            
 
                             // -------------Cycle 2-10 (Rounds)----------------
                             generate_seq (i : 1, 9,1){
                                 // Key Gen
+                                // call print_decryption_key(*key) >>
                                 send key_ri.req(aes_key_expand_in_pack::{key = *key; round = i; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
                                 let key_out_pack = recv key_ri.res >>
                                 let key_out = key_out_pack.key;
@@ -145,7 +187,18 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
 
 
                                 // Add Round Key
-                                let key_word_lin= *key[0+:4];
+                                let key_word_lin= match key_len{
+                                    key_len_e::KEY_LEN_128 => *key[0+:4],
+                                    key_len_e::KEY_LEN_256 => {
+                                        match ctrl_in.op_i {
+                                            ciph_op_e::CIPH_FWD => *key[4+:4],
+                                            _ => *key[0+:4]
+                                        }
+                                    },
+                                    _ => {
+                                        *key[0+:4]
+                                    }
+                                } >>
                                 let key_word = call create_byte_pack(key_word_lin);
                                 let key_bytes_normal = call transpose(key_word);
                                 let key_bytes = match ctrl_in.op_i{
@@ -168,7 +221,70 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                                 ()
                             }>>
 
-                            // -------------Cycle 11 (Final Round)----------------
+                            if (key_len == key_len_e::KEY_LEN_256) {
+                                generate_seq (i : 10, 13,1){
+                                    // call print_cipher_state(*cipher_state) >>
+                                // Key Gen
+                                        send key_ri.req(aes_key_expand_in_pack::{key = *key; round = i; ctrl = init_pack::{op = ctrl_in.op_i; key_len = key_len}}) >>
+                                        let key_out_pack = recv key_ri.res >>
+                                        let key_out = key_out_pack.key;
+
+                                        // Sub Bytes
+                                        send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
+                                        let sub_bytes_out = recv sub_bytes_ri.res >>
+                                        
+                                        
+                                        // Shift Rows
+                                        send shift_rows_ri.req(data_in_pack::{data = sub_bytes_out; op = ctrl_in.op_i}) >>
+                                        let shift_rows_out = recv shift_rows_ri.res >>
+                            
+                                        // Mix Columns
+                                        send mix_col_ri.req(data_in_pack::{data = shift_rows_out; op = ctrl_in.op_i}) >>
+
+
+                                        let mix_col_out : logic[4][4][8] = recv mix_col_ri.res >>
+                                        
+
+
+                                        // Add Round Key
+                                        let key_word_lin = match key_len{
+                                            key_len_e::KEY_LEN_128 => *key[0+:4],
+                                            key_len_e::KEY_LEN_256 => {
+                                                match ctrl_in.op_i {
+                                                    ciph_op_e::CIPH_FWD => *key[4+:4],
+                                                    _ => *key[0+:4]
+                                                }
+                                            },
+                                            _ => {
+                                                *key[0+:4]
+                                            }
+                                        } >>                                            
+                                        let key_word = call create_byte_pack(key_word_lin);
+                                        let key_bytes_normal = call transpose(key_word);
+                                        let key_bytes = match ctrl_in.op_i{
+                                            ciph_op_e::CIPH_FWD => key_bytes_normal ,
+                                            ciph_op_e::CIPH_INV => {
+                                                send key_mix_ri.req(data_in_pack::{data = key_bytes_normal; op = ciph_op_e::CIPH_INV}) >>
+                                                let key_bytes_t = recv key_mix_ri.res >>
+                                                key_bytes_t
+                                            },
+                                            _ => {
+                                                dprint "Invalid operation" ();
+                                                key_bytes_normal
+
+                                            }
+                                        } >>
+                            
+                                    let add_rk_out = call add_rk(mix_col_out,key_bytes) >>
+                                    {set cipher_state := add_rk_out;
+                                    set key := key_out} >>
+                                    ()
+                            }
+                            
+                        } >>
+                        
+                                
+                            // -------------Cycle 11/15 (Final Round)----------------
 
                             //Sub Bytes
                             send sub_bytes_ri.req(data_in_pack::{data = *cipher_state; op = ctrl_in.op_i}) >>
@@ -180,7 +296,18 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
                             let shift_rows_out = recv shift_rows_ri.res >>
 
                             //Add Round Key
-                            let key_word_lin = *key[0+:4] >>
+                            let key_word_lin = match key_len{
+                                            key_len_e::KEY_LEN_128 => *key[0+:4],
+                                            key_len_e::KEY_LEN_256 => {
+                                                match ctrl_in.op_i {
+                                                    ciph_op_e::CIPH_FWD => *key[4+:4],
+                                                    _ => *key[0+:4]
+                                                }
+                                            },
+                                            _ => {
+                                                *key[0+:4]
+                                            }
+                            } >>                                            
                             let key_word = call create_byte_pack(key_word_lin) >>
                             let key_bytes_normal = call transpose(key_word) >>
                             let key_bytes = key_bytes_normal >>

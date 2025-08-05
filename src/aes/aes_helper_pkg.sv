@@ -83,7 +83,7 @@ module aes_key_expand_wrapper (
             .out_ack_i (out_ack),
             .clear_i (_ep_init_valid),
             .round_i (_ep_req_0[5+:4]),
-            .key_len_i(aes_pkg::AES_128),
+            .key_len_i(aes_pkg::key_len_e'(_ep_init_0[0+:3])),
             .key_i(key_input),
             .prd_i(32'h0),
             .key_o(key_output),

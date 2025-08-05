@@ -45,7 +45,7 @@ proc aes_cipher_core_tb(){
 
         send ep_ri.crypt(inp) >>
         send ep_ri.key_pack(key) >>
-        send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
+        send ep_ri.key_len_i(key_len_e::KEY_LEN_256) >>
         send ep_ri.ctrl(aes_control_pack::{
             cfg_valid_i = 1'd1;
             op_i = ciph_op_e::CIPH_FWD
@@ -71,10 +71,12 @@ proc aes_cipher_core_tb(){
 
         send ep_ri.dec_key_gen_req(1'd1) >>
         send ep_ri.key_pack(key) >>
-        send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
+        send ep_ri.key_len_i(key_len_e::KEY_LEN_256) >>
+        
 
 
         let _ = recv ep_ri.res >>
+        
         
         dprint "[cycle %d] Received response from AES core decryption key req" (*counter);
 
@@ -82,7 +84,7 @@ proc aes_cipher_core_tb(){
 
         send ep_ri.crypt(*next_inp) >>
         send ep_ri.key_pack(key) >>
-        send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
+        send ep_ri.key_len_i(key_len_e::KEY_LEN_256) >>
         send ep_ri.ctrl(aes_control_pack::{
             cfg_valid_i = 1'd1;
             op_i = ciph_op_e::CIPH_INV
