@@ -3,8 +3,14 @@ import "common_cells.anvilh"
 
 
 proc axi_demux<
-              T : type,
-              A : type,
+                T : type,
+                A : type,
+
+              aw_pack_t : type,
+              w_pack_t : type,
+              b_pack_t : type,
+              ar_pack_t : type,
+              r_pack_t : type,
               select_t : int,
               AW_BYPASS : int,
               W_BYPASS : int,
@@ -21,30 +27,36 @@ proc axi_demux<
 // Write Translaction and read trannsaction to be implemented seperately (in different loops for now)
 {
 // Spill registers for the channels
-    
-    chan aw_sr_le -- aw_sr_ri : spill_ch<aw_pack<A, select_t> >;
-    chan w_sr_le -- w_sr_ri : spill_ch<w_pack<T, select_t> >;
-    chan b_sr_le -- b_sr_ri : spill_ch<b_pack>;
-    chan ar_sr_le -- ar_sr_ri : spill_ch<ar_pack<A, select_t> >;
-    chan r_sr_le -- r_sr_ri : spill_ch<r_pack<T> >;
-    chan w_fifo_le -- w_fifo_ep : fifo_ch<logic[select_t]>;
-    chan b_fifo_le -- b_fifo_ep : fifo_ch<logic[select_t]>;
-    chan r_fifo_le -- r_fifo_ep : fifo_ch<logic[select_t]>;
+
+    chan aw_sr_le -- aw_sr_ri : spill_ch< aw_sel_pack_t >;
+    chan w_sr_le -- w_sr_ri : spill_ch< w_pack_t >;
+    chan b_sr_le -- b_sr_ri : spill_ch< b_pack_t >;
+    chan ar_sr_le -- ar_sr_ri : spill_ch< ar_sel_pack_t >;
+    chan r_sr_le -- r_sr_ri : spill_ch< r_pack_t >;
+    chan w_fifo_le -- w_fifo_ep : fifo_ch< logic[select_t] >;
+    chan b_fifo_le -- b_fifo_ep : fifo_ch< logic[select_t] >;
+    chan r_fifo_le -- r_fifo_ep : fifo_ch< logic[select_t] >;
     spawn fifo< D, logic[select_t] >(w_fifo_le);
     spawn fifo< D, logic[select_t] >(b_fifo_le);
     spawn fifo< D, logic[select_t] >(r_fifo_le);
-    spawn spill_reg<aw_pack<A, select_t> , AW_BYPASS>(aw_sr_ri);
-    spawn spill_reg<w_pack<T, select_t> , W_BYPASS>(w_sr_ri);
-    spawn spill_reg<b_pack, B_BYPASS>(b_sr_ri);
-    spawn spill_reg<ar_pack<A, select_t>, AR_BYPASS>(ar_sr_ri);
-    spawn spill_reg<r_pack<T>, R_BYPASS>(r_sr_ri);
+    spawn spill_reg< aw_sel_pack_t , AW_BYPASS >(aw_sr_ri);
+    spawn spill_reg< w_sel_pack_t , W_BYPASS >(w_sr_ri);
+    spawn spill_reg< b_sel_pack_t , B_BYPASS >(b_sr_ri);
+    spawn spill_reg< ar_sel_pack_t , AR_BYPASS >(ar_sr_ri);
+    spawn spill_reg< r_sel_pack_t , R_BYPASS >(r_sr_ri);
 
 
 //---------------------------------------------Write Transaction------------------------------------------------------------
     loop{//AW slv req bypass
         try _ = recv aw_sr_le.rdy{
-            let aw_req = recv slv_ep.slv_req_aw >>
-            send aw_sr_le.req(aw_req)//To Do: add syncpattern as anytime immmediately after a message
+            let aw_req = recv slv_ep.aw_req  >>
+            let sel = recv slv_ep.aw_sel >>
+            let aw_sel_pack = aw_sel_pack_t::{
+                aw_pack = aw_req;
+                select = sel
+            };
+            
+            send aw_sr_le.req(aw_sel_pack)//To Do: add syncpattern as anytime immmediately after a message
         } >>
         cycle 1
     }
@@ -59,11 +71,11 @@ proc axi_demux<
                   send w_fifo_ep.push(aw_req.select) >>
                   match aw_req.select{
                     0 => {
-                            send mst_ep_0.mst_aw_req(aw_req.data) >>
+                            send mst_ep_0.mst_aw_req(aw_req.aw_pack) >>
                             send aw_sr_le.spill(1'd1) //
                     },
                     1 => {
-                            send mst_ep_1.mst_aw_req(aw_req.data) >>
+                            send mst_ep_1.mst_aw_req(aw_req.aw_pack) >>
                             send aw_sr_le.spill(1'd1) //sync pattern to say ready to accept after previous spill
                     },
                     _ => {
@@ -78,7 +90,7 @@ proc axi_demux<
 
         loop{//W slv req bypass
             try _ = recv w_sr_le.rdy{
-                let w_req = recv slv_ep.slv_req_w >>
+                let w_req = recv slv_ep.w_req >>
                 send w_sr_le.req(w_req)//To Do: add syncpattern as anytime immmediately after a message
             } >>
             cycle 1
@@ -146,7 +158,7 @@ proc axi_demux<
     loop {
         // slave gets the b response (spill register bypass)
         let b_resp = recv b_sr_le.res >>
-        send slv_ep.slv_res_b(b_resp) >>
+        send slv_ep.b_resp(b_resp) >>
         send b_sr_le.spill(1'd1) >> //sync pattern to say ready to spill the value
         cycle 1
     }
@@ -154,8 +166,13 @@ proc axi_demux<
 
     loop{//AR slv req bypass
         try _ = recv ar_sr_le.rdy{
-            let ar_req = recv slv_ep.slv_req_ar >>
-            send ar_sr_le.req(ar_req)//To Do: add syncpattern as anytime immmediately after a message
+            let ar_req = recv slv_ep.ar_req >>
+            let sel = recv slv_ep.ar_sel >>
+            let ar_sel_pack = ar_sel_pack_t::{
+                ar_pack = ar_req;
+                select = sel
+            };
+            send ar_sr_le.req(ar_sel_pack)//To Do: add syncpattern as anytime immmediately after a message
         } >>
         cycle 1
     }
@@ -169,11 +186,11 @@ proc axi_demux<
                   send r_fifo_ep.push(ar_req.select) >>
                   match ar_req.select{
                     0 => {
-                            send mst_ep_0.mst_ar_req(ar_req.data) >>
+                            send mst_ep_0.mst_ar_req(ar_req.ar_pack) >>
                             send ar_sr_le.spill(1'd1) //
                     },
                     1 => {
-                            send mst_ep_1.mst_ar_req(ar_req.data) >>
+                            send mst_ep_1.mst_ar_req(ar_req.ar_pack) >>
                             send ar_sr_le.spill(1'd1) //sync pattern to say ready to accept after previous spill
                     },
                     _ => {
@@ -213,7 +230,7 @@ proc axi_demux<
 
     loop {
         let resp = recv r_sr_le.res >>
-        send slv_ep.slv_res_r(resp) >>
+        send slv_ep.r_resp(resp) >>
         send r_sr_le.spill(1'd1) >>
         cycle 1
     }

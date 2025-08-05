@@ -1,13 +1,18 @@
 import "axi-demux.anvil"
+
 proc axi_router_top()
 {
     chan slv_ep_le -- slv_ep_ri : slave_ch<logic[64], logic[64], 2>;
-    chan mst_ep_0 -- mst_ep_1 : master_ch<logic[64], logic[64], 2>;
-    chan mst_ep_1 -- mst_ep_2 : master_ch<logic[64], logic[64], 2>;
+    chan ep0_le -- ep0_ri : master_ch<logic[64], logic[64], 2>;
+    chan ep1_le -- ep1_ri : master_ch<logic[64], logic[64], 2>;
     spawn axi_demux<
-                    logic[64], 
-                    logic[64], 
-                    1, 
+                    logic[64], logic[64],
+                    aw_pack_t<logic[64]>,
+                    w_pack_t<logic[64], strb_t>,
+                    b_pack_t,
+                    ar_pack_t<logic[64]>,
+                    r_pack_t<logic[64]>,
+                    1,
                     0,
                     0,
                     0,
@@ -15,7 +20,7 @@ proc axi_router_top()
                     0,
                     2,
                     logic[2]>
-(slv_ep_le, mst_ep_0, mst_ep_1);
+(slv_ep_le, ep0_le, ep1_le);
 
     loop {
         cycle 1

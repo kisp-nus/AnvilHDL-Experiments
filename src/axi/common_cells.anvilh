@@ -1,55 +1,98 @@
+type prot_t = logic[3];
+type resp_t = logic[2];
+type strb_t = logic[8];
+struct aw_pack_t <A : type> {
+    addr : A,
+    prot : prot_t
+}
 
-// extern import "spill_register.sv"
-
-// extern-proc-def ::= proc $identifier [$params] (($identifier : (left | right) $identifier [$param-vals]) | ())
-//  extern($string-literal) 
-//  { { (clk_i($string-literal) | rst_ni($string-literal) | $identifier.$identifier($string-literal : $string-literal : $string-literal) ) ; } }
-
-// proc spill_reg <T : type, BYPASS : int> (right ep : spill_ch<T>)
-// {
-//     extern("spill_register") {
-//         (clk_i("clk_i") | rst_ni("rst_ni") | ep.req("valid_i" : "data_i") | ep.res("valid_o" : "ready_i" : "data_o"));
-//     }
-// }
-struct w_pack<T : type, S : int> {
+struct w_pack_t<T : type, S : type> {
     data : T,
-    select : logic[S]
-}
-struct aw_pack<A : type, S : int> {
-    data : A,
-    select : logic[S]
-}
-type b_pack = logic[1];
-// Read Data Structs
-struct ar_pack<A : type, S : int> {
-    data : A,
-    select : logic[S]
-}
-struct r_pack<T : type> {    
-    data : T
-}
-chan spill_ch<T : type> {
-    left req : (T@#1),
-    right res : (T@#1)
-}
-chan slave_ch<T :type , A : type , select_t:int> {
-    left slv_req_aw : (aw_pack<A, select_t>@#1),
-    left slv_req_w  : (w_pack<T, select_t>@#1),
-    right slv_res_b : (b_pack@#1),
-    left slv_req_ar : (ar_pack<A, select_t>@#1),
-    right slv_res_r : (r_pack<T>@#1)
-}
-chan master_ch<T : type , A : type> {
-    right mst_aw_req : (T@#1),
-    right mst_w_req  : (A@#1),
-    left mst_b_resp  : (b_pack@#1),
-    right mst_ar_req : (A@#1),
-    left mst_r_resp : (r_pack<T>@#1)
+    strb : S
 }
 
-proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
+struct b_pack_t {
+    resp : resp_t
+}
+
+struct ar_pack_t<A : type> {
+    addr : A,
+    prot : prot_t
+}
+
+struct r_pack_t<T : type> {
+    data : T,
+    resp : resp_t
+}
+
+chan slave_ch<T :type , A : type , select_t:int> {
+    left aw_req : (aw_pack_t<A>@#1),
+    left aw_sel : (logic[select_t]@#1) @#aw_req - @#aw_req,
+
+    left w_req : (w_pack_t<T, strb_t>@#1),
+    
+
+    right b_resp : (b_pack_t@#1),
+
+    left ar_req : (ar_pack_t<A>@#1),
+    left ar_sel : (logic[select_t]@#1) @#ar_req - @#ar_req,
+
+    right r_resp : (r_pack_t<T>@#1),
+
+    left sel : (logic[select_t]@#1)
+
+}
+
+chan master_ch<T : type , A : type> {
+    right mst_aw_req : (aw_pack_t<A>@#1),
+    right mst_w_req  : (w_pack_t<T, strb_t>@#1),
+    left mst_b_resp  : (b_pack_t@#1),
+    right mst_ar_req : (ar_pack_t<A>@#1),
+    left mst_r_resp : (r_pack_t<T>@#1)
+}
+
+// chan master_ch<T : type , A : type> {
+    
+//     right mst_aw_req : (T@#1),
+//     right mst_w_req  : (A@#1),
+//     left mst_b_resp  : (b_pack_t@#1),
+//     right mst_ar_req : (A@#1),
+//     left mst_r_resp : (r_pack<T>@#1)
+// }
+
+struct aw_sel_pack_t {
+    aw_pack : aw_pack_t<logic[64]>,
+    select : logic[1]
+}
+struct w_sel_pack_t {
+    w_pack : w_pack_t<logic[64], strb_t>,
+    select : logic[1]
+}
+struct b_sel_pack_t {
+    b_pack_t : b_pack_t,
+    select : logic[1]
+}
+struct ar_sel_pack_t {
+    ar_pack : ar_pack_t <logic[64]>,
+    select : logic[1]
+}
+struct r_sel_pack_t {
+    r_pack : r_pack_t<logic[64]>,
+    select : logic[1]
+}
+
+
+chan spill_ch<T : type> {
+    right req : (T@#1) @#1 - @dyn,
+    left res : (T@#1) @dyn - @#1,
+    left rdy : (logic@#1) @#1 - @dyn,
+    right spill : (logic@#1) @dyn - @#1
+}
+
+proc spill_reg<T : type, BYPASS : int> (ep : right spill_ch<T>) {
     reg full : logic[2];
     reg spreg : T[2];
+
     loop {
     
         let a_full = *full[0];
@@ -59,6 +102,20 @@ proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
         let ready_o = (*full != 2'b11);
         let a_drain = (a_full & (~ b_full));
         let valid_o = (a_full | b_full) >>
+       if(ready_o){
+            send ep.rdy(ready_o)
+       }
+       else{
+        ()
+       } >>
+       if(valid_o){
+            let out = if (b_full) {
+                b_q
+            } else {
+                a_q
+            };
+            send ep.res(out)
+        } >>
         
         if ((ready_o) == 1'd1) {
             try a = recv ep.req {
@@ -66,15 +123,8 @@ proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
                 // a_fill - 1'b1
                 set spreg[0] := a;
                 set full[0] := 1'b1;
-                
-                if (valid_o) {
-                    let resp = if (b_full) {
-                        b_q
-                    } else {
-                        a_q
-                    };
-                    
-                    try send ep.res(resp) {
+
+                    try _ = recv ep.spill {
                         //ready_i = 1
                         // b_fill = 0
                         // b_drain  = b_full
@@ -96,10 +146,7 @@ proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
                             cycle 1
                         }
                     }
-                }
-                else{
-                    cycle 1
-                }
+            
             } else {
                 //a_fill =0 
                 if (a_drain) {
@@ -108,13 +155,13 @@ proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
                 else{
                     cycle 1
                 };
-                if (valid_o) {
-                    let resp = if (b_full) {
-                        b_q
-                    } else {
-                        a_q
-                    };
-                    try send ep.res(resp) {
+                // if (valid_o) {
+                //     let resp = if (b_full) {
+                //         b_q
+                //     } else {
+                //         a_q
+                //     };
+                try _ = recv ep.spill {
                         //ready_i = 1
                         //b_fill = 0
                         //b_drain = b_full
@@ -133,19 +180,16 @@ proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
                             cycle 1
                         }
                     }
-                }
-                else{
-                    cycle 1
-                }
+                // }
             }
         } else {
-            if (valid_o) {
-                let resp = if (b_full) {
-                    b_q
-                } else {
-                    a_q
-                };
-                try send ep.res(resp) {
+            // if (valid_o) {
+            //     let resp = if (b_full) {
+            //         b_q
+            //     } else {
+            //         a_q
+            //     };
+                try _ = recv ep.spill {
                     //ready_i = 1
                     //b_fill = 0
                     //b_drain = b_full
@@ -167,12 +211,11 @@ proc spill_reg<T : type, BYPASS : int> (ep : left spill_ch<T>) {
                     }
                     
                 }
-            }
-            else{
-                cycle 1
-            }
+            // }
+            // else{
+            //     cycle 1
+            // }
         }
-     
         
     }
 }
