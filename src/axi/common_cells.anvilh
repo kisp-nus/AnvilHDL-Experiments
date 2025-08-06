@@ -73,7 +73,7 @@ chan spill_ch<Tp : type> {
     right spill : (logic@#1) @dyn - @#1
 }
 
-proc spill_reg<Tp : type, BYPASS : int> (ep : right spill_ch<Tp>) {
+proc spill_reg<id: int, Tp : type, BYPASS : int> (ep : right spill_ch<Tp>) {
     reg full : logic[2];
     reg spreg : Tp[2];
     // reg cyc : logic[32];
@@ -97,6 +97,7 @@ proc spill_reg<Tp : type, BYPASS : int> (ep : right spill_ch<Tp>) {
         ()
        } >>
        if(valid_o == 1'b1) {
+            // dprint "[Cycle %d] Spill Register %d: Valid Output %b, A Full %b, B Full %b" (*cyc, id, valid_o, a_full, b_full) >>
             if (b_full) {
                 send ep.res(b_q)
             }

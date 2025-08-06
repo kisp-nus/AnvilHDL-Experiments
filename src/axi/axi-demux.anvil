@@ -35,12 +35,12 @@ proc axi_demux<
     spawn fifo_extern(w_fifo_le);
     spawn fifo_extern(b_fifo_le);
     spawn fifo_extern(r_fifo_le);
-    spawn spill_reg< aw_sel_pack_t , AW_BYPASS >(aw_sr_ri);
-    spawn spill_reg< w_pack_t , W_BYPASS >(w_sr_ri);
-    spawn spill_reg< b_pack_t , B_BYPASS >(b_sr_ri);
-    spawn spill_reg< ar_sel_pack_t , AR_BYPASS >(ar_sr_ri);
-    spawn spill_reg< r_pack_t , R_BYPASS >(r_sr_ri);
-    reg cyc : logic[32];
+    spawn spill_reg< 1,aw_sel_pack_t , AW_BYPASS >(aw_sr_ri);
+    spawn spill_reg< 2, w_pack_t , W_BYPASS >(w_sr_ri);
+    spawn spill_reg< 3, b_pack_t , B_BYPASS >(b_sr_ri);
+    spawn spill_reg< 4, ar_sel_pack_t , AR_BYPASS >(ar_sr_ri);
+    spawn spill_reg< 5, r_pack_t , R_BYPASS >(r_sr_ri);
+    // reg cyc : logic[32];
     // loop{
     //     set cyc := *cyc + 32'd1
     // }
@@ -170,6 +170,8 @@ proc axi_demux<
         try _ = recv ar_sr_le.rdy{
             let ar_req = recv slv_ep.ar_req >>
             let sel = recv slv_ep.ar_sel >>
+            let rdy = ready slv_ep.ar_req >>
+            // dprint "[Cycle %d] %d AR Request: %h | %h" (*cyc, rdy,ar_req.addr, sel) >>
             let ar_sel_pack = ar_sel_pack_t::{
                 ar_pack = ar_req;
                 select = sel
