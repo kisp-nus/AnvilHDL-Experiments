@@ -67,8 +67,8 @@ struct ar_sel_pack_t {
 }
 
 chan spill_ch<Tp : type> {
-    right req : (Tp@#1) @#1 - @dyn,
-    left res : (Tp@#1) @dyn - @#1,
+    right req : (Tp@#1) @dyn - @#1,
+    left res : (Tp@#1) @#1 - @dyn,
     left rdy : (logic@#1) @#1 - @dyn,
     right spill : (logic@#1) @dyn - @#1
 }
@@ -76,7 +76,11 @@ chan spill_ch<Tp : type> {
 proc spill_reg<Tp : type, BYPASS : int> (ep : right spill_ch<Tp>) {
     reg full : logic[2];
     reg spreg : Tp[2];
-
+    // reg cyc : logic[32];
+    // loop{
+    //     set cyc := *cyc + 32'd1
+    // }
+    
     loop {
     
         let a_full = *full[0];
@@ -92,14 +96,17 @@ proc spill_reg<Tp : type, BYPASS : int> (ep : right spill_ch<Tp>) {
        else{
         ()
        } >>
-       if(valid_o){
-            let out = if (b_full) {
-                b_q
-            } else {
-                a_q
-            };
-            send ep.res(out)
-        } >>
+       if(valid_o == 1'b1) {
+            if (b_full) {
+                send ep.res(b_q)
+            }
+            else{
+                send ep.res(a_q)
+            }
+        } 
+        else{
+            ()
+        }>>
         
         if ((ready_o) == 1'd1) {
             try a = recv ep.req {

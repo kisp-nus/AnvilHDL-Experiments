@@ -40,6 +40,10 @@ proc axi_demux<
     spawn spill_reg< b_pack_t , B_BYPASS >(b_sr_ri);
     spawn spill_reg< ar_sel_pack_t , AR_BYPASS >(ar_sr_ri);
     spawn spill_reg< r_pack_t , R_BYPASS >(r_sr_ri);
+    reg cyc : logic[32];
+    // loop{
+    //     set cyc := *cyc + 32'd1
+    // }
 
 //---------------------------------------------Write Transaction------------------------------------------------------------
     loop{//AW slv req bypass
@@ -63,6 +67,7 @@ proc axi_demux<
             }
             else{
                   let aw_req = recv aw_sr_le.res >> //sync pattern to say ready to recieve immediately
+                //   dprint "[Cycle %d] Recieved AW Request" (*cyc) >>
                   send w_fifo_ep.push(aw_req.select) >>
                   match aw_req.select{
                     0 => {
