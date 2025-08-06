@@ -18,9 +18,9 @@ proc axi_demux<
               NoMstPorts : int
             >
 (
-    slv_ep: left slave_ch<T, A, select_t>,
-    mst_ep_0: left master_ch<T, A>,
-    mst_ep_1: left master_ch<T, A>
+    slv_ep: left slave_ch,
+    mst_ep_0: left master_ch,
+    mst_ep_1: left master_ch
 )
 // Write Translaction and read trannsaction to be implemented seperately (in different loops for now)
 {

@@ -3,75 +3,79 @@ type resp_t = logic[2];
 type strb_t = logic[8];
 
 type select_t = logic;
-struct aw_pack_t <A : type> {
+type A = logic[32];
+type T = logic[32];
+
+
+struct aw_pack_t {
     addr : A,
     prot : prot_t
 }
 
-struct w_pack_t<T : type, S : type> {
+struct w_pack_t {
     data : T,
-    strb : S
+    strb : strb_t
 }
 
 struct b_pack_t {
     resp : resp_t
 }
 
-struct ar_pack_t<A : type> {
+struct ar_pack_t {
     addr : A,
     prot : prot_t
 }
 
-struct r_pack_t<T : type> {
+struct r_pack_t {
     data : T,
     resp : resp_t
 }
 
-chan slave_ch<T :type , A : type> {
-    left aw_req : (aw_pack_t<A>@#1),
+chan slave_ch{
+    left aw_req : (aw_pack_t@#1),
     left aw_sel : (select_t@#1) @#aw_req - @#aw_req,
-
-    left w_req : (w_pack_t<T, strb_t>@#1),
+    
+    left w_req : (w_pack_t@#1),
     
 
     right b_resp : (b_pack_t@#1),
 
-    left ar_req : (ar_pack_t<A>@#1),
+    left ar_req : (ar_pack_t@#1),
     left ar_sel : (select_t@#1) @#ar_req - @#ar_req,
 
-    right r_resp : (r_pack_t<T>@#1),
+    right r_resp : (r_pack_t@#1),
 
     left sel : (select_t@#1)
 
 }
 
-chan master_ch<T : type , A : type> {
-    right mst_aw_req : (aw_pack_t<A>@#1),
-    right mst_w_req  : (w_pack_t<T, strb_t>@#1),
+chan master_ch {
+    right mst_aw_req : (aw_pack_t@#1),
+    right mst_w_req  : (w_pack_t@#1),
     left mst_b_resp  : (b_pack_t@#1),
-    right mst_ar_req : (ar_pack_t<A>@#1),
-    left mst_r_resp : (r_pack_t<T>@#1)
+    right mst_ar_req : (ar_pack_t@#1),
+    left mst_r_resp : (r_pack_t@#1)
 }
 
 struct aw_sel_pack_t {
-    aw_pack : aw_pack_t<logic[32]>,
+    aw_pack : aw_pack_t,
     select : select_t
 }
 struct ar_sel_pack_t {
-    ar_pack : ar_pack_t <logic[32]>,
+    ar_pack : ar_pack_t,
     select : select_t
 }
 
-chan spill_ch<T : type> {
-    right req : (T@#1) @#1 - @dyn,
-    left res : (T@#1) @dyn - @#1,
+chan spill_ch<Tp : type> {
+    right req : (Tp@#1) @#1 - @dyn,
+    left res : (Tp@#1) @dyn - @#1,
     left rdy : (logic@#1) @#1 - @dyn,
     right spill : (logic@#1) @dyn - @#1
 }
 
-proc spill_reg<T : type, BYPASS : int> (ep : right spill_ch<T>) {
+proc spill_reg<Tp : type, BYPASS : int> (ep : right spill_ch<Tp>) {
     reg full : logic[2];
-    reg spreg : T[2];
+    reg spreg : Tp[2];
 
     loop {
     
@@ -200,10 +204,10 @@ proc spill_reg<T : type, BYPASS : int> (ep : right spill_ch<T>) {
     }
 }
 
-chan fifo_ch<T : type> {
-    left push : (T@#1) @#1 - @dyn,
+chan fifo_ch<Tp : type> {
+    left push : (Tp@#1) @#1 - @dyn,
     left pop : (logic@#1) @#1 - @dyn,
-    right data_o : (T@#1) @#pop - @#pop,
+    right data_o : (Tp@#1) @#pop - @#pop,
     right full : (logic[1]@#1) @dyn - @#1,
     right empty : (logic[1]@#1) @dyn - @#1
 }
