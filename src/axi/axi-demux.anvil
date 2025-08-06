@@ -1,24 +1,22 @@
 
 import "common_cells.anvilh"
-
+extern import "fifo.sv"
 
 proc axi_demux<
                 T : type,
                 A : type,
-
               aw_pack_t : type,
               w_pack_t : type,
               b_pack_t : type,
               ar_pack_t : type,
               r_pack_t : type,
-              select_t : int,
               AW_BYPASS : int,
               W_BYPASS : int,
               B_BYPASS : int,
               AR_BYPASS : int,
               R_BYPASS : int,
-              NoMstPorts : int,
-              D : type>
+              NoMstPorts : int
+            >
 (
     slv_ep: left slave_ch<T, A, select_t>,
     mst_ep_0: left master_ch<T, A>,
@@ -26,25 +24,22 @@ proc axi_demux<
 )
 // Write Translaction and read trannsaction to be implemented seperately (in different loops for now)
 {
-// Spill registers for the channels
-
     chan aw_sr_le -- aw_sr_ri : spill_ch< aw_sel_pack_t >;
     chan w_sr_le -- w_sr_ri : spill_ch< w_pack_t >;
     chan b_sr_le -- b_sr_ri : spill_ch< b_pack_t >;
     chan ar_sr_le -- ar_sr_ri : spill_ch< ar_sel_pack_t >;
     chan r_sr_le -- r_sr_ri : spill_ch< r_pack_t >;
-    chan w_fifo_le -- w_fifo_ep : fifo_ch< logic[select_t] >;
-    chan b_fifo_le -- b_fifo_ep : fifo_ch< logic[select_t] >;
-    chan r_fifo_le -- r_fifo_ep : fifo_ch< logic[select_t] >;
-    spawn fifo< D, logic[select_t] >(w_fifo_le);
-    spawn fifo< D, logic[select_t] >(b_fifo_le);
-    spawn fifo< D, logic[select_t] >(r_fifo_le);
+    chan w_fifo_le -- w_fifo_ep : fifo_ch<select_t>;
+    chan b_fifo_le -- b_fifo_ep : fifo_ch<select_t>;
+    chan r_fifo_le -- r_fifo_ep : fifo_ch<select_t>;
+    spawn fifo_extern(w_fifo_le);
+    spawn fifo_extern(b_fifo_le);
+    spawn fifo_extern(r_fifo_le);
     spawn spill_reg< aw_sel_pack_t , AW_BYPASS >(aw_sr_ri);
-    spawn spill_reg< w_sel_pack_t , W_BYPASS >(w_sr_ri);
-    spawn spill_reg< b_sel_pack_t , B_BYPASS >(b_sr_ri);
+    spawn spill_reg< w_pack_t , W_BYPASS >(w_sr_ri);
+    spawn spill_reg< b_pack_t , B_BYPASS >(b_sr_ri);
     spawn spill_reg< ar_sel_pack_t , AR_BYPASS >(ar_sr_ri);
-    spawn spill_reg< r_sel_pack_t , R_BYPASS >(r_sr_ri);
-
+    spawn spill_reg< r_pack_t , R_BYPASS >(r_sr_ri);
 
 //---------------------------------------------Write Transaction------------------------------------------------------------
     loop{//AW slv req bypass
@@ -105,7 +100,8 @@ proc axi_demux<
                     cycle 1
                 }
                 else { 
-                    let w_mst = recv w_fifo_ep.pop >>
+                    send w_fifo_ep.pop(1'd1) >>
+                    let w_mst = recv w_fifo_ep.data_o >>
                     send b_fifo_ep.push(w_mst) >>
                     match w_mst{
                         0 =>{
@@ -135,7 +131,8 @@ proc axi_demux<
         }
         else {
             try _ = recv b_sr_le.rdy {
-                let b_mst = recv b_fifo_ep.pop >>
+                send b_fifo_ep.pop(1'd1) >>
+                let b_mst = recv b_fifo_ep.data_o >>
                 match b_mst {
                     0 => {
                         let b = recv mst_ep_0.mst_b_resp >>
@@ -207,7 +204,8 @@ proc axi_demux<
             cycle 1
         }
         else {
-            let r_mst = recv r_fifo_ep.pop >>
+            send r_fifo_ep.pop(1'd1) >>
+            let r_mst = recv r_fifo_ep.data_o >>
             match r_mst {
                 0 => {
                         let _ = recv r_sr_le.rdy >>

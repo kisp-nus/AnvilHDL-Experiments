@@ -1,6 +1,8 @@
 type prot_t = logic[3];
 type resp_t = logic[2];
 type strb_t = logic[8];
+
+type select_t = logic;
 struct aw_pack_t <A : type> {
     addr : A,
     prot : prot_t
@@ -25,9 +27,9 @@ struct r_pack_t<T : type> {
     resp : resp_t
 }
 
-chan slave_ch<T :type , A : type , select_t:int> {
+chan slave_ch<T :type , A : type> {
     left aw_req : (aw_pack_t<A>@#1),
-    left aw_sel : (logic[select_t]@#1) @#aw_req - @#aw_req,
+    left aw_sel : (select_t@#1) @#aw_req - @#aw_req,
 
     left w_req : (w_pack_t<T, strb_t>@#1),
     
@@ -35,11 +37,11 @@ chan slave_ch<T :type , A : type , select_t:int> {
     right b_resp : (b_pack_t@#1),
 
     left ar_req : (ar_pack_t<A>@#1),
-    left ar_sel : (logic[select_t]@#1) @#ar_req - @#ar_req,
+    left ar_sel : (select_t@#1) @#ar_req - @#ar_req,
 
     right r_resp : (r_pack_t<T>@#1),
 
-    left sel : (logic[select_t]@#1)
+    left sel : (select_t@#1)
 
 }
 
@@ -51,36 +53,14 @@ chan master_ch<T : type , A : type> {
     left mst_r_resp : (r_pack_t<T>@#1)
 }
 
-// chan master_ch<T : type , A : type> {
-    
-//     right mst_aw_req : (T@#1),
-//     right mst_w_req  : (A@#1),
-//     left mst_b_resp  : (b_pack_t@#1),
-//     right mst_ar_req : (A@#1),
-//     left mst_r_resp : (r_pack<T>@#1)
-// }
-
 struct aw_sel_pack_t {
-    aw_pack : aw_pack_t<logic[64]>,
-    select : logic[1]
-}
-struct w_sel_pack_t {
-    w_pack : w_pack_t<logic[64], strb_t>,
-    select : logic[1]
-}
-struct b_sel_pack_t {
-    b_pack_t : b_pack_t,
-    select : logic[1]
+    aw_pack : aw_pack_t<logic[32]>,
+    select : select_t
 }
 struct ar_sel_pack_t {
-    ar_pack : ar_pack_t <logic[64]>,
-    select : logic[1]
+    ar_pack : ar_pack_t <logic[32]>,
+    select : select_t
 }
-struct r_sel_pack_t {
-    r_pack : r_pack_t<logic[64]>,
-    select : logic[1]
-}
-
 
 chan spill_ch<T : type> {
     right req : (T@#1) @#1 - @dyn,
@@ -221,15 +201,19 @@ proc spill_reg<T : type, BYPASS : int> (ep : right spill_ch<T>) {
 }
 
 chan fifo_ch<T : type> {
-    left push : (logic[1]@#1),
-    right pop : (T@#1),
-    right full : (logic[1]@#1),
-    right empty : (logic[1]@#1)
+    left push : (T@#1) @#1 - @dyn,
+    left pop : (logic@#1) @#1 - @dyn,
+    right data_o : (T@#1) @#pop - @#pop,
+    right full : (logic[1]@#1) @dyn - @#1,
+    right empty : (logic[1]@#1) @dyn - @#1
 }
 
-proc fifo<D: type, S: type>(ep : left fifo_ch<S>) {
-
-    loop{
-        cycle 1
-    }
+proc fifo_extern (ep : left fifo_ch<select_t>) extern("fifo") {
+    clk_i  ("clk_i");
+    rst_ni ("rst_ni");
+    ep.push("data_i":"push_i":);
+    ep.pop(:"pop_i":);
+    ep.data_o("data_o": :);
+    ep.full(:"full_o":);
+    ep.empty(:"empty_o":);
 }
