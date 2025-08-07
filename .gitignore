@@ -1,5 +1,6 @@
 *.cpp
 *.anvil.sv
+*.zip
 anvil.Flist
 /.vscode/
 !sim_main.cpp

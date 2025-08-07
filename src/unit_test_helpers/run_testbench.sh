@@ -367,11 +367,20 @@ if [[ ${#ADDITIONAL_FILES[@]} -gt 0 ]]; then
     done
 fi
 
-SV_FILES+=("$TESTBENCH_FILE")
+SV_FILES+=("$(realpath $TESTBENCH_FILE)")  
 log_info "Added: $(basename "$TESTBENCH_FILE")"
 
 log_success "Found ${#SV_FILES[@]} files to compile"
 
+log_info "Creating Verilator file list..."
+FLIST_FILE="$RTL_DIR/aes.flist"
+
+cat > "$FLIST_FILE" << EOF
+EOF
+
+for sv_file in "${SV_FILES[@]}"; do
+    echo "$sv_file" >> "$FLIST_FILE"
+done
 
 log_info "Creating C++ simulation driver..."
 cat > "$BUILD_DIR/sim_main.cpp" << EOF
