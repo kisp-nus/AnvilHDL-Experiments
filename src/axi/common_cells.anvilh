@@ -1,6 +1,6 @@
 type prot_t = logic[3];
 type resp_t = logic[2];
-type strb_t = logic[8];
+type strb_t = logic[4];
 
 type select_t = logic;
 type A = logic[32];
