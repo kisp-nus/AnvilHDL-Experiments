@@ -176,7 +176,7 @@ log_info "Testbench: $TESTBENCH_NAME"
 log_info "Timeout: $TIMEOUT cycles"
 
 # Find testbench file
-TESTBENCH_FILE=${TESTBENCH_NAME}.anvil.sv
+TESTBENCH_FILE=${TESTBENCH_NAME}.sv
 # for ext in ".sv" ".anvil.sv" "_tb.sv" "_tb.anvil.sv"; do
 #     if [[ -f "$RTL_DIR/${TESTBENCH_NAME}${ext}" ]]; then
 #         TESTBENCH_FILE="$RTL_DIR/${TESTBENCH_NAME}${ext}"
@@ -239,40 +239,68 @@ parse_core_file() {
     if [[ -f "$core_file" ]]; then
         log_info "Parsing aes.core file for dependencies..."
         
-        # Extract RTL files from the core file
-        local in_files_section=false
+        # Define dependency order - packages first, then implementation files
+        local ORDERED_AES_FILES=(
+            # Packages must come first
+            "aes_reg_pkg.sv"
+            "aes_pkg.sv"
+            "aes_sbox_canright_pkg.sv"
+            
+            # Low-level components (no dependencies on other AES modules)
+            "aes_sel_buf_chk.sv"
+            "aes_sbox_lut.sv"
+            "aes_sbox_canright.sv"
+            "aes_sbox_canright_masked_noreuse.sv"
+            "aes_sbox_canright_masked.sv"
+            "aes_sbox_dom.sv"
+            "aes_sbox.sv"
+            "aes_shift_rows.sv"
+            "aes_mix_single_column.sv"
+            "aes_mix_columns.sv"
+            "aes_key_expand.sv"
+            "aes_prng_clearing.sv"
+            "aes_prng_masking.sv"
+            
+            # Sub-components that depend on low-level modules
+            "aes_sub_bytes.sv"
+            
+            # FSM components
+            "aes_cipher_control_fsm_p.sv"
+            "aes_cipher_control_fsm_n.sv"
+            "aes_cipher_control_fsm.sv"
+            # "aes_control_fsm_p.sv"
+            # "aes_control_fsm_n.sv"
+            # "aes_control_fsm.sv"
+            # "aes_ctr_fsm_p.sv"
+            # "aes_ctr_fsm_n.sv"
+            # "aes_ctr_fsm.sv"
+            
+            # Control modules that use FSMs
+            # "aes_cipher_control.sv"
+            # "aes_control.sv"
+            # "aes_ctr.sv"
+            
+            # Core modules that use control modules
+            "aes_cipher_core.sv"
+            # "aes_reg_status.sv"
+            # "aes_ctrl_reg_shadowed.sv"
+            # "aes_reg_top.sv"
+            # "aes_core.sv"
+            
+            # # Top-level module (must be last)
+            # "aes.sv"
+        )
         
-        while IFS= read -r line; do
-            # Remove leading/trailing whitespace
-            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            
-            # Check if we're in the files section under files_rtl
-            if [[ "$line" == "files:" ]]; then
-                in_files_section=true
-                continue
+        # Add files in dependency order
+        for filename in "${ORDERED_AES_FILES[@]}"; do
+            local full_path="$RTL_DIR/$filename"
+            if [[ -f "$full_path" ]]; then
+                SV_FILES+=("$full_path")
+                log_info "Added from core (ordered): $filename"
+            else
+                log_warning "File from core not found: $filename"
             fi
-            
-            # Exit files section when we hit file_type or another section
-            if [[ "$in_files_section" == true && ("$line" =~ ^file_type: || "$line" =~ ^[a-zA-Z_]+:) ]]; then
-                in_files_section=false
-                continue
-            fi
-            
-            # Process file entries (look for lines starting with "- rtl/")
-            if [[ "$in_files_section" == true && "$line" =~ ^-[[:space:]]*rtl/ ]]; then
-                # Extract RTL filename from "- rtl/filename.sv" format
-                local filename=$(echo "$line" | sed 's/^-[[:space:]]*rtl\///')
-                local full_path="$RTL_DIR/$filename"
-                
-                if [[ -f "$full_path" ]]; then
-                    SV_FILES+=("$full_path")
-                    log_info "Added from core: $filename"
-                else
-                    log_warning "File from core not found: $filename"
-                fi
-            fi
-            
-        done < "$core_file"
+        done
         
         # Also look for waiver files
         local waiver_file="$RTL_DIR/../lint/aes.vlt"
@@ -285,7 +313,7 @@ parse_core_file() {
     else
         log_warning "aes.core file not found at $core_file, using manual dependencies"
         
-        # Fallback to manual AES dependencies
+        # Fallback to manual AES dependencies in proper order
         if grep -q "aes_" "$TESTBENCH_FILE"; then
             log_info "Detected AES testbench, adding manual AES dependencies..."
             
@@ -320,6 +348,7 @@ PKG_FILES=(
 )
 
 PRIM_FILES=(
+    "$PRIM_RTL_DIR/prim_assert_dummy_macros.svh" # Dummy macros for assertions
     "$PRIM_RTL_DIR/prim_assert.sv"          # Must be first - defines assertion macros
     "$PRIM_RTL_DIR/prim_util_pkg.sv"        # Utility package
     "$PRIM_RTL_DIR/prim_pkg.sv"             # Main primitive package
@@ -327,28 +356,38 @@ PRIM_FILES=(
     "$PRIM_GENERIC_DIR/prim_flop.sv"        # Generic flop implementation
     "$PRIM_GENERIC_DIR/prim_buf.sv"         # Generic buffer implementation
     "$PRIM_RTL_DIR/prim_sec_anchor_buf.sv"  # Security anchor buffer
-    "$PRIM_RTL_DIR/prim_sparse_fsm_flop.sv" # Sparse FSM flop
+    "$PRIM_RTL_DIR/prim_sparse_fsm_flop.sv" # Sparse FSM flop'
+    "$PRIM_RTL_DIR/prim_trivium_pkg.sv" # Trivium package
 )
+
+# Start with a fresh SV_FILES array in proper order
+ORDERED_SV_FILES=()
+
+log_info "Adding essential primitive files..."
+for prim_file in "${PRIM_FILES[@]}"; do
+    if [[ -f "$prim_file" ]]; then
+        ORDERED_SV_FILES+=("$prim_file")
+        log_info "Added primitive: $(basename "$prim_file")"
+    else
+        log_warning "Primitive file not found: $prim_file"
+    fi
+done
 
 log_info "Adding essential package files..."
 for pkg_file in "${PKG_FILES[@]}"; do
     if [[ -f "$pkg_file" ]]; then
-        SV_FILES=("$pkg_file" "${SV_FILES[@]}")  # Add to beginning of array
+        ORDERED_SV_FILES+=("$pkg_file")
         log_info "Added package: $(basename "$pkg_file")"
     else
         log_warning "Package file not found: $pkg_file"
     fi
 done
 
-log_info "Adding essential primitive files..."
-for prim_file in "${PRIM_FILES[@]}"; do
-    if [[ -f "$prim_file" ]]; then
-        SV_FILES=("$prim_file" "${SV_FILES[@]}")  # Add to beginning of array
-        log_info "Added primitive: $(basename "$prim_file")"
-    else
-        log_warning "Primitive file not found: $prim_file"
-    fi
-done
+# Now add the AES files that were collected in dependency order
+ORDERED_SV_FILES+=("${SV_FILES[@]}")
+
+# Replace SV_FILES with the properly ordered array
+SV_FILES=("${ORDERED_SV_FILES[@]}")
 
 # Add additional files specified via -f argument
 if [[ ${#ADDITIONAL_FILES[@]} -gt 0 ]]; then

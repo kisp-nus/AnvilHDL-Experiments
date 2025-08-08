@@ -38,15 +38,24 @@ def get_testbench_dependencies(RTL_DIR, flist):
             all_files = get_all_files_in_dir(dir)
             dependencies_list.extend(all_files)
 
-        dependencies_list += [f for f in get_all_files_in_dir(RTL_DIR) if '_lite_' in f ]
-        cleaned_dependencies = [dep.strip() for dep in dependencies_list if dep.strip() and not dep.startswith("+incdir+")]
-        cleaned_dependencies = list(set(cleaned_dependencies))
-        for f in cleaned_dependencies:
-            if 'tb' in os.path.basename(f) or 'test' in os.path.basename(f):
-                print(f"Removing testbench file: {f}")
-                cleaned_dependencies.remove(f)
-        return cleaned_dependencies
-        
+        if (not 'aes' in flist):
+            dependencies_list += [f for f in get_all_files_in_dir(RTL_DIR) if '_lite_' in f ]
+            cleaned_dependencies = [dep.strip() for dep in dependencies_list if dep.strip() and not dep.startswith("+incdir+")]
+            cleaned_dependencies = list(set(cleaned_dependencies))
+            for f in cleaned_dependencies:
+                if 'test' in os.path.basename(f):
+                    print(f"Removing testbench file: {f}")
+                    cleaned_dependencies.remove(f)
+            return cleaned_dependencies
+        else:
+            #remove newline characters and spaces from the dependencies_list
+            dependencies_list = [dep.strip() for dep in dependencies_list if dep.strip()]
+            remove_duplicates_with_order = []
+            for dep in dependencies_list:
+                if dep not in remove_duplicates_with_order:
+                    remove_duplicates_with_order.append(dep)
+
+            return remove_duplicates_with_order
 
 
 def preprocess_files(file):
@@ -59,7 +68,36 @@ def preprocess_files(file):
         return content
 
 def create_synthesis_harness(dependencies_list,testbench_name):
-    dependencies_list.sort(key=lambda x: (not ((x.endswith('.svh')) or ('pkg' in os.path.basename(x))), x))
+    if not 'aes' in testbench_name:
+        dependencies_list.sort(key=lambda x: (not ((x.endswith('.svh')) or ('pkg' in os.path.basename(x))), x))
+    # if 'aes' in testbench_name:
+    #     ent = [f for f in dependencies_list if 'entropy_src_pkg.sv' in f]
+    #     prim = [f for f in dependencies_list if 'prim_util_pkg.sv' in f]
+    #     aes_reg = [f for f in dependencies_list if 'aes_reg_pkg.sv' in f]
+    #     prim_assert_dummy = [f for f in dependencies_list if 'prim_assert_dummy_macros.svh' in f]
+    #     prim_assert = [f for f in dependencies_list if 'prim_assert.sv' in f]
+    #     aes_main_files = [f for f in dependencies_list if 'aes.sv' in f or 'aes_wrap.sv' in f or 'aes_control.sv' in f or 'aes_core.sv' in f or 'aes.sv' in f or 'aes_control_fsm.sv' in f or 'aes_control_fsm_p.sv' in f or 'aes_control_fsm_n.sv' in f]
+    #     dependencies_list = [f for f in dependencies_list if f not in aes_main_files]
+
+    #     if prim_assert_dummy:
+    #         dependencies_list.remove(prim_assert_dummy[0])
+    #         dependencies_list.insert(0, prim_assert_dummy[0])
+    #     if prim_assert:
+    #         dependencies_list.remove(prim_assert[0])
+    #         dependencies_list.insert(1, prim_assert[0])
+    #     if prim:
+    #         dependencies_list.remove(prim[0])
+    #         dependencies_list.insert(2, prim[0])
+    #     if ent:
+    #         dependencies_list.remove(ent[0])
+    #         dependencies_list.insert(3, ent[0])
+    #     if aes_reg:
+    #         dependencies_list.remove(aes_reg[0])
+    #         dependencies_list.insert(4, aes_reg[0])
+        
+        
+
+    
     # print(f"sorted dependencies list: {dependencies_list}")
     SRC_DIR = os.path.join(CUR_DIR, "../build")
     os.makedirs(SRC_DIR, exist_ok=True)
