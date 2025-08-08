@@ -276,7 +276,7 @@ parse_core_file() {
             # "aes_ctr_fsm.sv"
             
             # Control modules that use FSMs
-            # "aes_cipher_control.sv"
+            "aes_cipher_control.sv"
             # "aes_control.sv"
             # "aes_ctr.sv"
             
