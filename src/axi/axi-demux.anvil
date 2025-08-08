@@ -1,6 +1,6 @@
 
 import "common_cells.anvilh"
-extern import "fifo.sv"
+extern import "fifo_wrapper.sv"
 
 proc axi_demux<
                 T : type,

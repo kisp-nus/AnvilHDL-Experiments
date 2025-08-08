@@ -220,7 +220,7 @@ chan fifo_ch<Tp : type> {
     right empty : (logic[1]@#1) @dyn - @#1
 }
 
-proc fifo_extern (ep : left fifo_ch<select_t>) extern("fifo") {
+proc fifo_extern (ep : left fifo_ch<select_t>) extern("fifo_wrapper") {
     clk_i  ("clk_i");
     rst_ni ("rst_ni");
     ep.push("data_i":"push_i":);

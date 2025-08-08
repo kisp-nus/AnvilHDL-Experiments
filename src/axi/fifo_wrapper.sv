@@ -1,42 +1,6 @@
 
 // taken from pulp-platforms/common_cells
 
-localparam MAX_TRANSACTIONS = 8;
-typedef logic [31:0] dtype;
-module fifo (
-    input  logic  clk_i,            // Clock
-    input  logic  rst_ni,           // Asynchronous reset active low
-    output logic  full_o,           // queue is full
-    output logic  empty_o,          // queue is empty
-    input  dtype  data_i,           // data to push into the queue
-    input  logic  push_i,           // data is valid and can be pushed to the queue
-    output dtype  data_o,           // output data
-    input  logic  pop_i             // pop head from queue
-);
-
-fifo_v3 #(
-    .FALL_THROUGH(1'b0),
-    .DEPTH(MAX_TRANSACTIONS),
-    .dtype(dtype)
-) dut (
-    .clk_i(clk_i),
-    .rst_ni(rst_ni),
-    .flush_i(1'b0),               // no flush
-    .testmode_i(1'b0),            // no test mode
-    .full_o(full_o),
-    .empty_o(empty_o),
-    .usage_o(),                   // not used
-    .data_i(data_i),
-    .push_i(push_i),
-    .data_o(data_o),
-    .pop_i(pop_i)
-);
-endmodule
-
-
-
-
-
 module fifo_v3 #(
     parameter bit          FALL_THROUGH = 1'b0, // fifo is in fall-through mode
     parameter int unsigned DATA_WIDTH   = 32,   // default data width if the fifo is of type logic
@@ -165,3 +129,37 @@ module fifo_v3 #(
     end
 
 endmodule // fifo_v3
+
+localparam MAX_TRANSACTIONS = 8;
+typedef logic [31:0] dtype;
+
+module fifo_wrapper (
+    input  logic  clk_i,            // Clock
+    input  logic  rst_ni,           // Asynchronous reset active low
+    output logic  full_o,           // queue is full
+    output logic  empty_o,          // queue is empty
+    input  dtype  data_i,           // data to push into the queue
+    input  logic  push_i,           // data is valid and can be pushed to the queue
+    output dtype  data_o,           // output data
+    input  logic  pop_i             // pop head from queue
+);
+
+fifo_v3 #(
+    .FALL_THROUGH(1'b0),
+    .DEPTH(MAX_TRANSACTIONS),
+    .dtype(dtype)
+) dut (
+    .clk_i(clk_i),
+    .rst_ni(rst_ni),
+    .flush_i(1'b0),               // no flush
+    .testmode_i(1'b0),            // no test mode
+    .full_o(full_o),
+    .empty_o(empty_o),
+    .usage_o(),                   // not used
+    .data_i(data_i),
+    .push_i(push_i),
+    .data_o(data_o),
+    .pop_i(pop_i)
+);
+endmodule
+
