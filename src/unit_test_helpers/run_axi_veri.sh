@@ -10,6 +10,9 @@ fi
 TESTBENCH_NAME=$1
 TIMEOUT=${2:-10000}
 
+TESTBENCH_PATH_FILE=$(realpath "$TESTBENCH_NAME.sv")
+echo "Testbench path file: $TESTBENCH_PATH_FILE"
+
 cat > demux.flist << EOF
 +incdir+/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/include
 +incdir+/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/include
@@ -64,6 +67,7 @@ cat > demux.flist << EOF
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/multiaddr_decode.sv
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/src/axi_pkg.sv
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/src/axi_lite_demux.sv
+${TESTBENCH_PATH_FILE}
 EOF
 
 
@@ -185,7 +189,9 @@ if [ ! -f "${TESTBENCH_NAME}.sv" ]; then
     exit 1
 fi
 
-verilator -f demux.flist "${VERILATOR_FLAGS[@]}" "${TESTBENCH_NAME}.sv" "$ROOT/sim_main.cpp"
+verilator -f demux.flist "${VERILATOR_FLAGS[@]}" -top "$TESTBENCH_NAME" "$ROOT/sim_main.cpp"
+
+
 
 
 if [ $? -eq 0 ]; then
