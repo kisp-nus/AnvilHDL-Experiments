@@ -216,8 +216,8 @@ chan fifo_ch<Tp : type> {
     left push : (Tp@#1) @#1 - @dyn,
     left pop : (logic@#1) @#1 - @dyn,
     right data_o : (Tp@#1) @#pop - @#pop,
-    right full : (logic[1]@#1) @dyn - @#1,
-    right empty : (logic[1]@#1) @dyn - @#1
+    right full : (logic@#1) @#1 - @#1,
+    right empty : (logic@#1) @#1 - @#1
 }
 
 proc fifo_extern (ep : left fifo_ch<select_t>) extern("fifo_wrapper") {
