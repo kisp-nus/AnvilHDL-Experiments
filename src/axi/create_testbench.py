@@ -28,7 +28,7 @@ def remove_module_definitions(testbench_file,wrapper_name):
         file.write(content)
 
 def add_wrapper_module_definition(testbench_file, wrapper_name):
-    helper_pkg= os.path.join(CUR_DIR, "aes_helper_pkg.sv") 
+    helper_pkg= os.path.join(CUR_DIR, "axi_helper_pkg.sv") 
     pattern_to_add = regex.compile(rf'\bmodule\s+{wrapper_name}+_wrapper\b.*?endmodule', regex.DOTALL)
     with open(helper_pkg, 'r') as file: 
         content = file.read()
@@ -74,7 +74,7 @@ def subsitute_wrapper_name(testbench_file, wrapper_name):
     with open(testbench_file, 'r') as file:
         content = file.read()
         # subsitute the content all instances of match "wrapper_name" with "wrapper_name_wrapper"
-        content = regex.sub(rf'\b{wrapper_name}\b', f'{wrapper_name}_wrapper', content)
+        content = regex.sub(rf'\b{wrapper_name}_0\b', f'{wrapper_name}_wrapper', content)
             
     with open(testbench_file, 'w') as file:
         file.write(content)

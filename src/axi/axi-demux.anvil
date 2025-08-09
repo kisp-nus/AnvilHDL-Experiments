@@ -1,6 +1,6 @@
 
 import "common_cells.anvilh"
-extern import "fifo_wrapper.sv"
+import "fifo.anvil"
 
 proc axi_demux<
                 T : type,
@@ -32,9 +32,9 @@ proc axi_demux<
     chan w_fifo_le -- w_fifo_ep : fifo_ch<select_t>;
     chan b_fifo_le -- b_fifo_ep : fifo_ch<select_t>;
     chan r_fifo_le -- r_fifo_ep : fifo_ch<select_t>;
-    spawn fifo_extern(w_fifo_le);
-    spawn fifo_extern(b_fifo_le);
-    spawn fifo_extern(r_fifo_le);
+    spawn fifo<select_t,8,3>(w_fifo_le);
+    spawn fifo<select_t,8,3>(b_fifo_le);
+    spawn fifo<select_t,8,3>(r_fifo_le);
     spawn spill_reg< 1,aw_sel_pack_t , AW_BYPASS >(aw_sr_ri);
     spawn spill_reg< 2, w_pack_t , W_BYPASS >(w_sr_ri);
     spawn spill_reg< 3, b_pack_t , B_BYPASS >(b_sr_ri);
@@ -62,7 +62,8 @@ proc axi_demux<
 
 
     loop{ //AW Channel Transaction To Do: add parametrized register by passing
-    /*1.*/  try _ = recv w_fifo_ep.full{
+    /*1.*/  let f = recv w_fifo_ep.full >>
+            if (f == 1'b1){
                 cycle 1
             }
             else{
@@ -97,14 +98,16 @@ proc axi_demux<
         }
         
         loop{ // The FSM that controls the w channel transaction
-            try _ = recv w_fifo_ep.empty {
+            let e = recv w_fifo_ep.empty  >>
+            if (e == 1'b1){
                 cycle 1
             }
             else {
-                try _ = recv b_fifo_ep.full {
+                let f = recv b_fifo_ep.full >>
+                if (f == 1'b1){
                     cycle 1
                 }
-                else { 
+                else {
                     send w_fifo_ep.pop(1'd1) >>
                     let w_mst = recv w_fifo_ep.data_o >>
                     send b_fifo_ep.push(w_mst) >>
@@ -131,7 +134,8 @@ proc axi_demux<
 // B channel Transaction
     
     loop{// Master to bypass the value to spill register
-        try _ = recv b_fifo_ep.empty {
+        let e = recv b_fifo_ep.empty >>
+        if (e == 1'b1){
             cycle 1
         }
         else {
@@ -182,7 +186,8 @@ proc axi_demux<
     }
 
     loop{ //AR Channel Transaction To Do: add parametrized register by passing
-    /*1.*/  try _ = recv r_fifo_ep.full{
+    /*1.*/  let f = recv r_fifo_ep.full >>
+            if (f == 1'b1){
                 cycle 1
             }
             else{
@@ -207,7 +212,8 @@ proc axi_demux<
 
     // R Data Transaction
     loop{    
-        try _ = recv r_fifo_ep.empty {
+        let e = recv r_fifo_ep.empty >>
+        if (e == 1'b1){
             cycle 1
         }
         else {
