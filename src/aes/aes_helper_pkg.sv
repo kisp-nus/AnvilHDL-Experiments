@@ -236,7 +236,7 @@ module aes_cipher_core_wrapper (
     .SecSBoxImpl(aes_pkg::SBoxImplLut),
     .SecAllowForcingMasks(0),
     .SecSkipPRNGReseeding(0),
-    .EntropyWidth(128)
+    .EntropyWidth(EntropyWidth)
   ) dut_core (
     .clk_i,
     .rst_ni,
