@@ -14,7 +14,7 @@ func print_enc_key(key : logic[8][32]) {
 }
 proc aes_cipher_core_tb(){
     chan ep_le -- ep_ri : aes_core_ch;
-    chan entr_ep_le -- entr_ep_ri : entropy_ch<128>;
+    chan entr_ep_le -- entr_ep_ri : entropy_ch<1>;
     spawn aes_cipher_core(ep_le, entr_ep_ri);
     reg counter : logic[32];
     reg next_inp : logic[4][4][8];

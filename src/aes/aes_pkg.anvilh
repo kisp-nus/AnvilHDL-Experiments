@@ -42,24 +42,24 @@ struct aes_key_expand_out_pack {
 //     key_init_i : logic[8][32]
 // }
 struct aes_control_pack {
-    cfg_valid_i : logic,
-    op_i : ciph_op_e,
     prng_reseed_i : logic,
     key_clear_i : logic,
     data_out_clear_i : logic,
     alert_fatal_i : logic,
     prd_clearing_state_i : logic[4][4][8],
     prd_clearing_key_i : logic[8][32],
-    force_masks_i : logic
+    force_masks_i : logic,
+    cfg_valid_i : logic,
+    op_i : ciph_op_e
 }
 
 struct aes_core_out_pack {  
-    state_o : logic[4][4][8],
     data_in_mask_o : logic[4][4][8],
     alert_o : logic,
     data_out_clear_o : logic,
     key_clear_o : logic,
-    prng_reseed_o : logic
+    prng_reseed_o : logic,
+    state_o : logic[4][4][8]
 }
 
 struct sub_bytes_in_pack {

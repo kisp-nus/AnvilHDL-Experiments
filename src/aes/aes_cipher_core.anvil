@@ -29,7 +29,7 @@ import "aes_sub_bytes.anvil"
 // }
 
 
-proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
+proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<1>){
     chan key_le -- key_ri : aes_key_expand_ch;
     chan shift_rows_le -- shift_rows_ri : shift_rows_ch;
     chan mix_col_le -- mix_col_ri : mix_column_ch;
