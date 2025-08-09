@@ -48,10 +48,31 @@ proc aes_cipher_core_tb(){
         send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
         send ep_ri.ctrl(aes_control_pack::{
             cfg_valid_i = 1'd1;
-            op_i = ciph_op_e::CIPH_FWD
+            op_i = ciph_op_e::CIPH_FWD;
+            prng_reseed_i = 1'd0;
+            key_clear_i = 1'd0;
+            data_out_clear_i = 1'd0;
+            alert_fatal_i = 1'd0;
+            prd_clearing_state_i = #{
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            prd_clearing_key_i = #{
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            force_masks_i = 1'd0
         }) >>
         
-        let cipher_text = recv ep_ri.res >>
+        let cipher_text = recv ep_ri.crypt_res >>
         dprint "======================[cycle %d] Received response from AES core encryption test for AES 128==============" (*counter) >>
 
         call print_state(cipher_text.state_o) >>
@@ -76,9 +97,7 @@ proc aes_cipher_core_tb(){
         
 
 
-        let _ = recv ep_ri.res >>
-        
-        
+        let _ = recv ep_ri.dec_key_gen_res >>
         dprint "[cycle %d] Decryption Key is generated" (*counter) >>
 
         cycle 1 >>
@@ -91,11 +110,32 @@ proc aes_cipher_core_tb(){
         send ep_ri.key_len_i(key_len_e::KEY_LEN_128) >>
         send ep_ri.ctrl(aes_control_pack::{
             cfg_valid_i = 1'd1;
-            op_i = ciph_op_e::CIPH_INV
+            op_i = ciph_op_e::CIPH_INV;
+            prng_reseed_i = 1'd0;
+            key_clear_i = 1'd0;
+            data_out_clear_i = 1'd0;
+            alert_fatal_i = 1'd0;
+            prd_clearing_state_i = #{
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            prd_clearing_key_i = #{
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            force_masks_i = 1'd0
         }) >>
 
         
-        let dec_cipher_text = recv ep_ri.res >>
+        let dec_cipher_text = recv ep_ri.crypt_res >>
         dprint "================[cycle %d] Received response from AES core decryption test for AES 128=======" (*counter) >>
         call print_state(dec_cipher_text.state_o) >>
         
@@ -128,10 +168,31 @@ proc aes_cipher_core_tb(){
         send ep_ri.key_len_i(key_len_e::KEY_LEN_256) >>
         send ep_ri.ctrl(aes_control_pack::{
             cfg_valid_i = 1'd1;
-            op_i = ciph_op_e::CIPH_FWD
+            op_i = ciph_op_e::CIPH_FWD;
+            prng_reseed_i = 1'd0;
+            key_clear_i = 1'd0;
+            data_out_clear_i = 1'd0;
+            alert_fatal_i = 1'd0;
+            prd_clearing_state_i = #{
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            prd_clearing_key_i = #{
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            force_masks_i = 1'd0
         }) >>
         
-        let cipher_text = recv ep_ri.res >>
+        let cipher_text = recv ep_ri.crypt_res >>
         dprint "======================[cycle %d] Received response from AES core encryption test for AES 256==============" (*counter) >>
 
         call print_state(cipher_text.state_o) >>
@@ -156,7 +217,7 @@ proc aes_cipher_core_tb(){
         
 
 
-        let _ = recv ep_ri.res >>
+        let _ = recv ep_ri.dec_key_gen_res >>
         
         
         dprint "[cycle %d] Decryption Key is generated" (*counter) >>
@@ -171,11 +232,32 @@ proc aes_cipher_core_tb(){
         send ep_ri.key_len_i(key_len_e::KEY_LEN_256) >>
         send ep_ri.ctrl(aes_control_pack::{
             cfg_valid_i = 1'd1;
-            op_i = ciph_op_e::CIPH_INV
+            op_i = ciph_op_e::CIPH_INV;
+            prng_reseed_i = 1'd0;
+            key_clear_i = 1'd0;
+            data_out_clear_i = 1'd0;
+            alert_fatal_i = 1'd0;
+            prd_clearing_state_i = #{
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0},
+                #{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            prd_clearing_key_i = #{
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0},
+                #flat{8'd0, 8'd0, 8'd0, 8'd0}
+            };
+            force_masks_i = 1'd0
         }) >>
 
-        
-        let dec_cipher_text = recv ep_ri.res >>
+
+        let dec_cipher_text = recv ep_ri.crypt_res >>
         dprint "================[cycle %d] Received response from AES core decryption test for AES 256=======" (*counter) >>
         call print_state(dec_cipher_text.state_o) >>
         
