@@ -1,3 +1,4 @@
+extern import "aes_sbox_lut.sv" 
 enum ciph_op_e{
     NOP1,
     CIPH_FWD,
@@ -177,7 +178,7 @@ func mul4(data){
 }
 
 
-proc sbox(ep : left sbox_ch){
+proc sbox_anv(ep : left sbox_ch){
     loop{
         let sbox_fwd = #{
 
@@ -281,3 +282,11 @@ func add_rk(a : logic[4][4][8], b : logic[4][4][8]){
     let row_4 = #{a[3][3]^b[3][3], a[3][2]^b[3][2], a[3][1]^b[3][1], a[3][0]^b[3][0]};
     #{row_4, row_3, row_2, row_1}
 }
+
+proc sbox(ep : left sbox_ch) extern("aes_sbox_extern"){
+    clk_i ("clk_i");
+    rst_ni ("rst_ni");
+    ep.req ("req": :);
+    ep.res ("out": :);
+}
+
