@@ -108,9 +108,8 @@ def main():
     subsitute_wrapper_name(testbench_file, wrapper_name)
 
     if clean:
-        testbench_top_content = get_testbench_top(testbench_file, testbench_name)
         wrapper_content = get_testbench_top("axi_helper_pkg.sv", f"{wrapper_name}_wrapper")
-        cleanup_testbench(testbench_file, testbench_top_content, wrapper_content)
+        cleanup_testbench(testbench_file, '', wrapper_content)
 
     else:
         add_wrapper_module_definition(testbench_file, wrapper_name)

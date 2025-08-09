@@ -220,12 +220,12 @@ chan fifo_ch<Tp : type> {
     right empty : (logic@#1) @#1 - @#1
 }
 
-proc fifo_extern (ep : left fifo_ch<select_t>) extern("fifo_wrapper") {
-    clk_i  ("clk_i");
-    rst_ni ("rst_ni");
-    ep.push("data_i":"push_i":);
-    ep.pop(:"pop_i":);
-    ep.data_o("data_o": :);
-    ep.full(:"full_o":);
-    ep.empty(:"empty_o":);
-}
+// proc fifo_extern (ep : left fifo_ch<select_t>) extern("fifo_wrapper") {
+//     clk_i  ("clk_i");
+//     rst_ni ("rst_ni");
+//     ep.push("data_i":"push_i":);
+//     ep.pop(:"pop_i":);
+//     ep.data_o("data_o": :);
+//     ep.full(:"full_o":);
+//     ep.empty(:"empty_o":);
+// }
