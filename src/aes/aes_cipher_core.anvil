@@ -44,11 +44,11 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<128>){
     reg cipher_state : logic[4][4][8];
     reg key : logic[8][32];
     reg dec_key : logic[8][32];
-    reg cycle_count : logic[32];
+    // reg cycle_count : logic[32];
 
-    loop{
-        set cycle_count := *cycle_count + 32'd1
-    }
+    // loop{
+    //     set cycle_count := *cycle_count + 32'd1
+    // }
 
     loop{
             try key_gen = recv ep.dec_key_gen_req  {

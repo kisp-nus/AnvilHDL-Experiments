@@ -111,10 +111,10 @@ proc aes_sub_bytes(ep : left sub_bytes_ch){
     spawn sbox(sli_3_2);
     chan sli_3_3 -- sri_3_3 : sbox_ch;
     spawn sbox(sli_3_3);
-    reg cycle_count : logic[32];
-    loop{
-        set cycle_count := *cycle_count + 32'd1
-    }
+    // reg cycle_count : logic[32];
+    // loop{
+    //     set cycle_count := *cycle_count + 32'd1
+    // }
     loop{
         let data_in = recv ep.req >>
         let data_out = call use_sbox(data_in)>>
