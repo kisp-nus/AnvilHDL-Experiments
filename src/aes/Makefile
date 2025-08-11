@@ -9,9 +9,9 @@ all: obj_dir/V$(MODULE_NAME)
 .PHONY: run clean
 
 ifdef LTOFF
-    ANVIL_FLAGS = -disable-lt-checks
+    ANVIL_FLAGS = -disable-lt-checks -O 3
 else
-    ANVIL_FLAGS =
+    ANVIL_FLAGS = 
 endif
 
 $(MODULE_NAME).anvil.sv: $(MODULE_NAME).anvil
