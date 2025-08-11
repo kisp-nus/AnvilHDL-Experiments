@@ -121,8 +121,6 @@ endmodule
 
 
 module aes_sbox_extern (
-  input logic clk_i,
-  input logic rst_ni,
   input logic[9:0] req,
   output logic[7:0] out
 );
