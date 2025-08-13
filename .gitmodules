@@ -4,3 +4,6 @@
 [submodule "opentitan"]
 	path = opentitan
 	url = git@github.com:lowRISC/opentitan.git
+[submodule "cva6_ariane"]
+	path = cva6_ariane
+	url = https://github.com/openhwgroup/cva6.git
