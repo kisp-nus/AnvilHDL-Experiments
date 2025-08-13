@@ -340,10 +340,13 @@ func WAIT_RVALID() {
     set stage := stageEnum::LATENCY
 }
 
-proc pmp_extern(ep : left pmp_ch){
-    loop{
-        cycle 1
-    }
+proc pmp_extern(ep : left pmp_ch) extern("pmp #(.CVA6Cfg(CVA6Cfg))"){
+    ep.addr_i("addr_i": : );
+    ep.priv_lvl_i("priv_lvl_i": : );
+    ep.access_type("access_type": : );
+    ep.pmp_addr("conf_addr_i": : );
+    ep.pmp_cfg("conf_i": : );
+    ep.res ("allow_o": : );
 }
 
 
