@@ -85,25 +85,27 @@ func ROUND_0(){
     let key_word = call create_byte_pack(key_word_lin) >>
                             let key_bytes_normal = call transpose(key_word) >>
                             let key_bytes = key_bytes_normal >>
+    let add_rk = call add_rk(*cipher_state , key_bytes) >>
+    set cipher_state := add_rk;
                             
-    match key_len {
+    {
+        match key_len {
                     key_len_e::KEY_LEN_128 =>{
                         send key_ri.req(aes_key_expand_in_pack::{key = *key; round = 4'd0; ctrl = init_pack::{op = op; key_len = key_len}}) >>
                         let key_out_pack = recv key_ri.res >>
-                        set cipher_state := call add_rk(*cipher_state , key_bytes); 
                         set key := key_out_pack.key;
                         set round := *round+4'd1
                         
                     },
                     key_len_e::KEY_LEN_256 =>{
-                            let add_rk = call add_rk(*cipher_state , key_bytes) >>
-                            set cipher_state := add_rk;
+                            
                             set round := *round+4'd1
                     },
                     _ => {
                             dprint "Unsupported key length" () >>
                             set state := state_e::INIT
                     }
+        }
     }
 }
 
