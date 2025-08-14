@@ -93,7 +93,6 @@ struct shared_tlb_in {
 enum stageEnum {
     IDLE,
     WAIT_GRANT,
-    SEND_DCACHE_REQ,
     PTE_LOOKUP,
     WAIT_RVALID,
     PROPAGATE_ERROR,
@@ -130,7 +129,8 @@ chan ptw_mmu_ch {
 
 
 chan dcache_ptw_ch {
-    left req : (logic@#1),
+    left req : (logic@#1) @#1 - @dyn,
+    right gnt : (logic@#1) @#1 - @#1,
     left data_req : (dcache_in_t@#1) @#1 - @dyn,
     right data_res : (dcache_out_t@#1)
 }
@@ -202,13 +202,16 @@ func IDLE() {
 }
 
 func WAIT_GRANT() {
-
-    try send dcache_ch.req(1'd1){
+    send dcache_ch.req(1'd1) >>
+    let x = recv dcache_ch.gnt >>
+    if (x == 1'd1){
         try _ = recv flush_ch.req {
-            set stage := stageEnum::SEND_DCACHE_REQ
+            set stage := stageEnum::WAIT_RVALID >>
+            call SEND_DCACHE_REQ()
         }
         else{
-            set stage := stageEnum::PTE_LOOKUP
+            set stage := stageEnum::PTE_LOOKUP >>
+            call SEND_DCACHE_REQ()
         }
     }
     else{
@@ -224,14 +227,10 @@ func WAIT_GRANT() {
 func SEND_DCACHE_REQ() {
     let address_index = *ptw_pptr[0+:12] >>
     let address_tag = *ptw_pptr[12+:44] >>
-    send dcache_ch.data_req(dcache_in_t::{data_wdata = 64'd0;data_wuser = 1'd0;data_be = 8'd0; data_id = 3'd0;address_index=address_index;address_tag=address_tag;data_size = 2'd3}) >>
-    call WAIT_RVALID()
+    send dcache_ch.data_req(dcache_in_t::{data_wdata = 64'd0;data_wuser = 1'd0;data_be = 8'hff; data_id = 3'd0;address_index=address_index;address_tag=address_tag;data_size = 2'd3})
 }
 
 func PTE_LOOKUP() {
-    let address_index = *ptw_pptr[0+:12] >>
-    let address_tag = *ptw_pptr[12+:44] >>
-    send dcache_ch.data_req(dcache_in_t::{data_wdata = 64'd0; data_wuser = 1'd0; data_be = 8'd0; data_id = 3'd0; address_index = address_index ; address_tag=address_tag; data_size = 2'd3}) >>
     try x = recv dcache_ch.data_res {
         try _ = recv flush_ch.req {
             cycle 1 >>
@@ -343,7 +342,7 @@ func WAIT_RVALID() {
 proc pmp_extern(ep : left pmp_ch) extern("pmp #(.CVA6Cfg(CVA6Cfg))"){
     ep.addr_i("addr_i": : );
     ep.priv_lvl_i("priv_lvl_i": : );
-    ep.access_type("access_type": : );
+    ep.access_type("access_type_i": : );
     ep.pmp_addr("conf_addr_i": : );
     ep.pmp_cfg("conf_i": : );
     ep.res ("allow_o": : );
@@ -369,7 +368,6 @@ proc anvil_ptw (mmu_ch : left ptw_mmu_ch, dcache_ch : right dcache_ptw_ch, flush
             match *stage {
                 stageEnum::IDLE => call IDLE(),
                 stageEnum::WAIT_GRANT => call WAIT_GRANT(),
-                stageEnum::SEND_DCACHE_REQ => call SEND_DCACHE_REQ(),
                 stageEnum::PTE_LOOKUP => call PTE_LOOKUP(),
                 stageEnum::PROPAGATE_ERROR => call PROPAGATE_ERROR(),
                 stageEnum::PROPAGATE_ACCESS_ERROR => call PROPAGATE_ACCESS_ERROR(),
@@ -394,23 +392,4 @@ proc anvil_ptw (mmu_ch : left ptw_mmu_ch, dcache_ch : right dcache_ptw_ch, flush
         cycle 1
     }
 
-    // loop{
-    //     match *stage{
-    //     stageEnum::IDLE => (),
-    //     stageEnum::WAIT_GRANT => dprint "[Cycle %d] Request Recieved => Wait Grant" (*cyc),
-    //     stageEnum::SEND_DCACHE_REQ => dprint "[Cycle %d] Send Dcache Req" (*cyc),
-    //     stageEnum::POLL_DCACHE_RESP => dprint "[Cycle %d] Poll Dcache Resp" (*cyc),
-    //     stageEnum::PTE_LOOKUP => dprint "[Cycle %d] PTE Lookup" (*cyc),
-    //     stageEnum::WAIT_RVALID => dprint "[Cycle %d] Wait Rvalid" (*cyc),
-    //     stageEnum::PROPAGATE_ERROR => dprint "[Cycle %d] Propagate Error" (*cyc),
-    //     stageEnum::PROPAGATE_ACCESS_ERROR => dprint "[Cycle %d] Propagate Access Error" (*cyc),
-    //     stageEnum::LATENCY => dprint "[Cycle %d] Latency" (*cyc),
-    //     _ => ()
-    //     }>>
-    //     cycle 1
-    // }
-
-
 }
-
-
