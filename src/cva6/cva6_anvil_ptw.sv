@@ -140,8 +140,8 @@ module cva6_anvil_ptw
     assign req_port_o = '{
         address_index : _dcache_ch_data_req_0[122+:12],
         address_tag : _dcache_ch_data_req_0[78+:44],
-        data_wdata : '0,
-        data_wuser : '0,
+        data_wdata : _dcache_ch_data_req_0[14+:64],
+        data_wuser : _dcache_ch_data_req_0[13],
         data_req : _dcache_ch_req_valid,
         data_we : '0,
         data_be : _dcache_ch_data_req_0[5+:8],
