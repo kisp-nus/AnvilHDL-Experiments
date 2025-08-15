@@ -25,11 +25,11 @@ enum pmp_addr_mode_t{
     NAPOT
 }
 
-enum ptw_stage_e{
-    S_STAGE,
-    G_INTERMED_STAGE,
-    G_FINAL_STAGE
-}
+// enum ptw_stage_e{
+//     S_STAGE,
+//     G_INTERMED_STAGE,
+//     G_FINAL_STAGE
+// }
 
 struct mmu_out {
     bad_gpaddr_o : logic[41],
@@ -122,9 +122,9 @@ chan ptw_mmu_ch {
     right update_vaddr_o : (logic[64]@#1) @#1-@#1,
     right res : (mmu_out@#1) @dyn - @#1,
     right status : (logic@#1) @#1 - @#1,
-    right walking_instr_o : (logic@#1) @#1-@#1,
-    left pmp_cfg : (pmpcfg_t[8]@#1) @#1 - @#1,
-    left pmp_addr : (logic[8][56]@#1) @#1 - @#1
+    right walking_instr_o : (logic@#1) @#1-@#1
+    // left pmp_cfg : (pmpcfg_t[8]@#1) @#1 - @#1,
+    // left pmp_addr : (logic[8][56]@#1) @#1 - @#1
 }
 
 
@@ -136,11 +136,11 @@ chan dcache_ptw_ch {
 }
 
 chan pmp_ch {
-    left addr_i : (logic[56]@#1) @#1 - @#1,
-    left priv_lvl_i : (prv_lvl_e@#1) @#1 - @#1,
-    left access_type : (pmp_access_t@#1) @#1 - @#1,
-    left pmp_addr : (logic[8][56]@#1) @#1 - @#1,
-    left pmp_cfg : (pmpcfg_t[8]@#1) @#1 - @#1,
+    // left addr_i : (logic[56]@#1) @#1 - @#1,
+    // left priv_lvl_i : (prv_lvl_e@#1) @#1 - @#1,
+    // left access_type : (pmp_access_t@#1) @#1 - @#1,
+    // left pmp_addr : (logic[8][56]@#1) @#1 - @#1,
+    // left pmp_cfg : (pmpcfg_t[8]@#1) @#1 - @#1,
     right res : (logic@#1) @#1 - @#1
 }
 
@@ -187,7 +187,7 @@ func IDLE() {
                     set vaddr := inp.update_vaddr_i;
                     set ptw_pptr := #flat{csr_in.satp_ppn_i, inp.update_vaddr_i[30+:9],3'd0};
                     set tlb_update_asid := csr_in.asid_i;
-                    set ptw_stage := ptw_stage_e::S_STAGE;
+                    // set ptw_stage := ptw_stage_e::S_STAGE;
                     set stage := stageEnum::WAIT_GRANT
                 } else {
                     send mmu_ch.miss_o(1'd0) >>
@@ -219,7 +219,7 @@ func WAIT_GRANT() {
             set stage := stageEnum::LATENCY
         }
         else{
-            cycle 1
+            set stage := stageEnum::WAIT_GRANT
         }
     }
 }
@@ -233,7 +233,7 @@ func SEND_DCACHE_REQ() {
 func PTE_LOOKUP() {
     try x = recv dcache_ch.data_res {
         try _ = recv flush_ch.req {
-            cycle 1 >>
+            set data_rdata := x.data_rdata >>
             set stage := stageEnum::LATENCY
         }
         else{    
@@ -309,7 +309,7 @@ func PTE_LOOKUP() {
             set stage := stageEnum::WAIT_RVALID
         }
         else{
-            cycle 1
+            set stage := stageEnum::PTE_LOOKUP
         }
     }
 }
@@ -339,29 +339,27 @@ func WAIT_RVALID() {
     set stage := stageEnum::LATENCY
 }
 
-proc pmp_extern(ep : left pmp_ch) extern("pmp #(.CVA6Cfg(CVA6Cfg))"){
-    ep.addr_i("addr_i": : );
-    ep.priv_lvl_i("priv_lvl_i": : );
-    ep.access_type("access_type_i": : );
-    ep.pmp_addr("conf_addr_i": : );
-    ep.pmp_cfg("conf_i": : );
-    ep.res ("allow_o": : );
-}
+// proc pmp_extern(ep : left pmp_ch) extern("pmp #(.CVA6Cfg(CVA6Cfg))"){
+//     ep.addr_i("addr_i": : );
+//     ep.priv_lvl_i("priv_lvl_i": : );
+//     ep.access_type("access_type_i": : );
+//     ep.pmp_addr("conf_addr_i": : );
+//     ep.pmp_cfg("conf_i": : );
+//     ep.res ("allow_o": : );
+// }
 
 
-proc anvil_ptw (mmu_ch : left ptw_mmu_ch, dcache_ch : right dcache_ptw_ch, flush_ch : left flush_ctl_ch)
+proc anvil_ptw (mmu_ch : left ptw_mmu_ch, dcache_ch : right dcache_ptw_ch, flush_ch : left flush_ctl_ch, pmp_ep_ri : right pmp_ch)
 {
-    chan pmp_ep_le -- pmp_ep_ri : pmp_ch;
-    spawn pmp_extern(pmp_ep_le);
+    // chan pmp_ep_le -- pmp_ep_ri : pmp_ch;
+    // spawn pmp_extern(pmp_ep_le);
     reg ptw_pptr : logic[56];
     reg data_rdata : logic[64];
     reg is_instr_ptw : logic;
     reg stage : stageEnum;
     reg vaddr : logic[64];
     reg tlb_update_asid : logic[16];
-    reg pmp_access_allow : logic;
     reg ptw_lvl : logic[2];
-    reg ptw_stage : ptw_stage_e;
 
     loop {
            
@@ -382,13 +380,13 @@ proc anvil_ptw (mmu_ch : left ptw_mmu_ch, dcache_ch : right dcache_ptw_ch, flush
         send mmu_ch.status((*stage!=stageEnum::IDLE)) >>
         send mmu_ch.walking_instr_o(*is_instr_ptw) >>
         send mmu_ch.update_vaddr_o(*vaddr) >>
-        send pmp_ep_ri.addr_i(*ptw_pptr) >>
-        send pmp_ep_ri.priv_lvl_i(prv_lvl_e::PRV_S) >>
-        send pmp_ep_ri.access_type(pmp_access_t::ACCESS_READ) >>
-        let pmp_addr_i = recv mmu_ch.pmp_addr >>
-        send pmp_ep_ri.pmp_addr(pmp_addr_i) >>
-        let pmp_cfg_i = recv mmu_ch.pmp_cfg >>
-        send pmp_ep_ri.pmp_cfg(pmp_cfg_i) >>
+        // send pmp_ep_ri.addr_i(*ptw_pptr) >>
+        // send pmp_ep_ri.priv_lvl_i(prv_lvl_e::PRV_S) >>
+        // send pmp_ep_ri.access_type(pmp_access_t::ACCESS_READ) >>
+        // let pmp_addr_i = recv mmu_ch.pmp_addr >>
+        // send pmp_ep_ri.pmp_addr(pmp_addr_i) >>
+        // let pmp_cfg_i = recv mmu_ch.pmp_cfg >>
+        // send pmp_ep_ri.pmp_cfg(pmp_cfg_i) >>
         cycle 1
     }
 
