@@ -1,0 +1,69 @@
+extern import "passthrough_stream_fifo.sv"
+import "stream_fifo.anvil"
+
+proc stream_fifo_extern (ep : left stream_fifo_ch<logic[32]>) extern("passthrough_stream_fifo #(.Depth(32'd8), .PrintInfo(1'b0), .SameCycleRW(1'b1), .type_t(logic[31:0]))") {
+    clk_i  ("clk_i");
+    rst_ni ("rst_ni");
+    ep.flush("flush_i" : : );
+    ep.push("data_i": "valid_i": "ready_o");
+    ep.pop("data_o": "valid_o": "ready_i");
+}
+
+
+proc stream_fifo_top(){
+    chan ep_le -- ep_ri : stream_fifo_ch<logic[32]>;
+    // spawn stream_fifo_extern(ep_le);
+    spawn stream_fifo<8,1,logic[32],3>(ep_le);
+    reg cyc : logic[32];
+    reg flush : logic;
+    loop{
+        cycle 100 >>
+        set flush := 1'd1 >>
+        set flush := 1'd0
+    }
+    loop{
+        set cyc := *cyc + 32'd1
+    }
+    loop{
+        cycle 10 >>
+        dprint "[Cycle %d] Sending data to FIFO" (*cyc) >>
+        send ep_ri.push(32'd51) >>
+        cycle 1 >>
+        send ep_ri.push(32'd52) >>
+        cycle 1 >>
+        send ep_ri.push(32'd53) >>
+        cycle 1 >>
+        send ep_ri.push(32'd54) >>
+        cycle 1 >>
+        send ep_ri.push(32'd55) >>
+        cycle 1 >>
+        send ep_ri.push(32'd56) >>
+        cycle 1 >>
+        send ep_ri.push(32'd57) >>
+        cycle 1 >>
+        send ep_ri.push(32'd58) >>
+        cycle 1 >>
+        dprint "[Cycle %d] The fifo is full now, we should be able to make read and write work in same cycle" (*cyc) >>
+
+        cycle 1 >>
+        let x = recv ep_ri.pop >>
+        dprint "[Cycle %d] Received data from FIFO: %d" (*cyc, x) >>
+        send ep_ri.push(32'd59) >>
+        dprint "[Cycle %d] Same cycle read write worked" (*cyc) >>
+        cycle 1 >>
+
+        send ep_ri.push(32'd60) >>
+        dprint "[Cycle %d] Same cycle read write wont work untill flushed" (*cyc) >>
+        cycle 1 >>
+        dfinish >>
+        cycle 1
+
+    }
+    loop{
+        send ep_ri.flush(*flush) >>
+        cycle 1
+    }
+    
+}
+
+
