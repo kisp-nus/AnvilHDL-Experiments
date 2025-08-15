@@ -7,3 +7,6 @@
 [submodule "cva6_ariane"]
 	path = cva6_ariane
 	url = https://github.com/openhwgroup/cva6.git
+[submodule "common_cells"]
+	path = common_cells
+	url = https://github.com/pulp-platform/common_cells.git

@@ -1,4 +1,11 @@
-import "common_cells.anvilh"
+chan fifo_ch<Tp : type> {
+    left push : (Tp@#1) @#1 - @dyn,
+    left pop : (logic@#1) @#1 - @dyn,
+    right data_o : (Tp@#1) @#pop - @#pop,
+    right full : (logic@#1) @#1 - @#1,
+    right empty : (logic@#1) @#1 - @#1
+}
+
 proc fifo < data_t : type, depth: int, address_depth : int>(ep : left fifo_ch<data_t>) {
     reg mem : data_t[depth];
     reg head : logic[address_depth];

@@ -1,23 +1,21 @@
-
-import "common_cells.anvilh"
-// extern import "fifo_wrapper.sv"
+extern import "fifo_wrapper.sv"
 import "fifo.anvil"
 
-// proc fifo_extern (ep : left fifo_ch<logic[32]>) extern("fifo_wrapper") {
-//     clk_i  ("clk_i");
-//     rst_ni ("rst_ni");
-//     ep.push("data_i":"push_i":);
-//     ep.pop(:"pop_i":);
-//     ep.data_o("data_o": :);
-//     ep.full(:"full_o":);
-//     ep.empty(:"empty_o":);
-// }
-
+proc fifo_extern (ep : left fifo_ch<logic[32]>) extern("fifo_wrapper") {
+    clk_i  ("clk_i");
+    rst_ni ("rst_ni");
+    ep.push("data_i":"push_i":);
+    ep.pop(:"pop_i":);
+    ep.data_o("data_o": :);
+    ep.full("full_o": :);
+    ep.empty("empty_o": :);
+}
 
 
 proc fifo_top(){
     chan ep_le -- ep_ri : fifo_ch<logic[32]>;
-    spawn fifo<logic[32], 8, 3>(ep_le);
+    // spawn fifo_extern(ep_le);
+    spawn fifo<logic[32],8,3>(ep_le);
     reg cyc : logic[32];
     loop{
         set cyc := *cyc + 32'd1
@@ -94,13 +92,17 @@ proc fifo_top(){
 
     loop{
         let empty = recv ep_ri.empty >>
-        dprint "[Cycle %d] FIFO empty: %d" (*cyc, empty) >>
+        if(empty){
+            dprint "[Cycle %d] FIFO empty: %d" (*cyc, empty)
+        } >>
         cycle 1
     }
 
     loop{
         let full = recv ep_ri.full >>
-        dprint "[Cycle %d] FIFO full: %d" (*cyc, full) >>
+        if(full){
+            dprint "[Cycle %d] FIFO full: %d" (*cyc, full)
+        } >>
         cycle 1
     }
 }

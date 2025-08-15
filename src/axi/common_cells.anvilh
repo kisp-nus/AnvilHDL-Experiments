@@ -1,3 +1,5 @@
+import "../common_cells/fifo.anvil"
+
 type prot_t = logic[3];
 type resp_t = logic[2];
 type strb_t = logic[4];
