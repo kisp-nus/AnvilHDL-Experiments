@@ -1,0 +1,75 @@
+enum src_e{
+    ARITHMETIC,
+    MEMORY,
+    CONST
+}
+struct reg_pack_t{
+    rs : logic[8],
+    rt : logic[8]
+}
+struct reg_addr_pack_t{
+    rs_address : logic[4],
+    rt_address : logic[4]
+}
+
+
+struct wr_pack_t{
+    addr : logic[8],
+    src : src_e,
+    alu_out : logic[8],
+    lsu_out : logic[8],
+    imm : logic[8]
+}
+
+chan regfile_ch{
+    left enable : (logic@#1) @#1 - @#1,
+    left block_id : (logic[8]@#1) @#1 - @#1,
+    left rd_req : (reg_addr_pack_t@#1) @#1- @dyn,
+    right rd_res : (reg_pack_t@#1) @#rd_req+1 - @#rd_req+1,
+    left wr_req : (wr_pack_t@#1) @#1 - @dyn
+}
+
+proc registers(ep : left regfile_ch){
+    reg registers : logic[16][8];
+    reg rs : logic[8];
+    reg rt : logic[8];
+    loop{
+        let en = recv ep.enable >>
+        if(en == 1'd1){
+            
+            {
+                try raddr = recv ep.rd_req {
+                    set rs := *registers[raddr.rs_address];
+                    set rt := *registers[raddr.rt_address] >>
+                    send ep.rd_res(reg_pack_t::{rs = *rs; rt = *rt})
+                }
+                else try wpack  = recv ep.wr_req {
+                    match wpack.src{
+                        src_e::ARITHMETIC =>{
+                            set registers[wpack.addr] := wpack.alu_out
+                        },
+                        src_e::MEMORY =>{
+                            set registers[wpack.addr] := wpack.lsu_out
+                        },
+                        src_e::CONST =>{
+                            set registers[wpack.addr] := wpack.imm
+                        },
+                        _ =>{
+                            cycle 1
+                        }
+                    }
+                }
+                else{
+                    cycle 1
+                }
+            }
+        }
+        else{
+            cycle 1
+        }
+    }
+    loop{
+        let block_id = recv ep.block_id >>
+        set registers[13] := block_id
+    }
+}
