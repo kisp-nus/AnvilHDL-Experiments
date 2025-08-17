@@ -1,0 +1,14 @@
+chan dcr_ch{
+    left req : (logic[8]@#1) @#1 - @dyn,
+    right res : (logic[8]@#1) @#req+1 - @#req+1
+}
+
+proc dcr (ep : left dcr_ch) {
+    reg dc_reg : logic[8];
+    
+    loop{
+        let data = recv ep.req >>
+        set dc_reg := data >>
+        send ep.res(*dc_reg)   
+    }
+}
