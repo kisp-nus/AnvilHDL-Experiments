@@ -1,0 +1,22 @@
+const PROGRAM_MEM_ADDR_BITS = 8;
+const PROGRAM_MEM_DATA_BITS = 16;
+
+chan fetch_ch{
+    left pc : (logic[8]@inst) @#1 - @dyn, //To Do: replace with new sync pattern
+    right inst : (logic[16]@pc) @dyn - @#1
+}
+
+chan inst_mem_ch{
+    left req : (logic[8]@data) @#1 - @dyn,
+    right data : (logic[16]@req) @dyn - @#1
+}
+
+proc fetcher (ep : left fetch_ch, mem_ep : right inst_mem_ch){
+    loop{
+        let pc = recv ep.pc >>
+        send mem_ep.req(pc) >>
+        let inst = recv mem_ep.data >>
+        send ep.inst(inst) >>
+        cycle 1
+    }
+}
