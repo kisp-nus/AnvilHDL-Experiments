@@ -16,7 +16,7 @@ chan lsu_mem_ch{
 
 chan lsu_ch {
     left enable : (logic[1]@eternal) @#1 - @#1,
-    left req : (logic[2]@out),
+    left req : (logic[2]@out) @#1 - @dyn, //TO do replace with new sync pattern
     left reg_pack : (reg_pack_t@out) @#req - @#req,
     right out : (logic[8]@req) @dyn - @#1
 }
