@@ -50,16 +50,19 @@ proc slave_node<id : int> (slv_ep_ri : right slave_mux_ch)
         set cyc := *cyc + 32'd1
     }
     loop {
+        let addri = <(id)::A> >>
+        let datab = <(id)::T> >>
+        let datai = ~datab >>
         dprint "[Cycle %d][Node %d] Sending AW Request" (*cyc,id) >>
         send slv_ep_ri.aw_req(aw_pack_t::{
-            addr = <(32'h00000001)::A >;
+            addr = addri;
             prot = <(3'b000)::prot_t >
         }) >>
         // send slv_ep_ri.aw_sel(< (1'd1)::select_t >) >>
         dprint "[Cycle %d][Node %d] AW Request sent" (*cyc,id) >>
         cycle 1 >>
         send slv_ep_ri.w_req(w_pack_t::{
-            data = <(32'hdeadbeef)::T>;
+            data = datai;
             strb = <(4'hf)::strb_t>
         }) >>
         dprint "[Cycle %d][Node %d] W Request sent" (*cyc,id) >>
@@ -68,7 +71,7 @@ proc slave_node<id : int> (slv_ep_ri : right slave_mux_ch)
         dprint "[Cycle %d][Node %d] Received b_resp: %b" (*cyc,id, b_resp.resp) >>
 
         send slv_ep_ri.ar_req(ar_pack_t::{
-            addr = <(32'h00000001)::A >;
+            addr = addri;
             prot = <(3'b000)::prot_t >
         }) >>
         // send slv_ep_ri.ar_sel(< (1'd1)::select_t >) >>
