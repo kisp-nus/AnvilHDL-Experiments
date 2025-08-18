@@ -49,9 +49,9 @@ proc axi_demux<
     // loop{
     //     set cyc := *cyc + 32'd1
     // }
-
-//---------------------------------------------Write Transaction------------------------------------------------------------
-    loop{//AW slv req bypass
+loop{
+//--------------------------------------------Write Transaction------------------------------------------------------------
+    {//AW slv req bypass
         let rdy = recv aw_sr_le.rdy >>
         if (rdy == 1'd1){
             try aw_req = recv slv_ep.aw_req {
@@ -63,12 +63,11 @@ proc axi_demux<
             
                 send aw_sr_le.req(aw_sel_pack)//To Do: add syncpattern as anytime immmediately after a message
             }
-        } >>
-        cycle 1
-    }
+        }
+    };
 
 
-    loop{ //AW Channel Transaction To Do: add parametrized register by passing
+    { //AW Channel Transaction To Do: add parametrized register by passing
     /*1.*/  let f = recv w_fifo_ep.full >>
             if(f == 1'b0){
                   try aw_req = recv aw_sr_le.res{
@@ -147,24 +146,22 @@ proc axi_demux<
                     send aw_sr_le.spill(1'd1) //sync pattern to say ready to accept after previous spill
                   }
                 }
-            } >>
-            cycle 1
+            } 
                 
-    }
+    };
 
         // W Channel Transaction
 
-        loop{//W slv req bypass
+        {//W slv req bypass
             let rdy = recv w_sr_le.rdy >>
             if (rdy == 1'd1){
                 try w_req = recv slv_ep.w_req{
                     send w_sr_le.req(w_req)//To Do: add syncpattern as anytime immmediately after a message
                 }
-            } >>
-            cycle 1
-        }
+            } 
+        };
         
-        loop{ // The FSM that controls the w channel transaction
+        { // The FSM that controls the w channel transaction
             let e = recv w_fifo_ep.empty  >>
             let f = recv b_fifo_ep.full >>
             if ((e == 1'b0) && (f == 1'b0)){
@@ -276,12 +273,11 @@ proc axi_demux<
                     }
                 }
                 
-            } >>
-            cycle 1
-        }
+            } 
+        };
 // B channel Transaction
-    
-    loop{// Master to bypass the value to spill register
+
+    { // Master to bypass the value to spill register
         let e = recv b_fifo_ep.empty >>
         let rdy = recv b_sr_le.rdy >>
         if (e == 1'b0 && rdy == 1'd1){
@@ -379,23 +375,20 @@ proc axi_demux<
                     send b_fifo_ep.pop(1'd1) >>
                     send b_sr_le.req(<(tc[1+:2])::b_pack_t>)
                 }
-            }  >>
-        
-        cycle 1
-    }
+            } 
+    };
 
-    loop {
+    {
         // slave gets the b response (spill register bypass)
         try b_resp = recv b_sr_le.res {
             try send slv_ep.b_resp(b_resp){
                 send b_sr_le.spill(1'd1)
             } 
-        } >>
-        cycle 1
-    }
+        } 
+    };
 // ----------------------------------------------Read Transaction------------------------------------------------------------
 
-    loop{//AR slv req bypass
+    {//AR slv req bypass
         let rdy = recv ar_sr_le.rdy >>
         if (rdy == 1'd1) {
             try ar_req = recv slv_ep.ar_req {
@@ -407,11 +400,10 @@ proc axi_demux<
                 } >>
                 send ar_sr_le.req(ar_sel_pack)//To Do: add syncpattern as anytime immmediately after a message
             }
-        } >>
-        cycle 1
-    }
+        } 
+    };
 
-    loop{ //AR Channel Transaction To Do: add parametrized register by passing
+    { //AR Channel Transaction To Do: add parametrized register by passing
     /*1.*/  let f = recv r_fifo_ep.full >>
             if (f == 1'b0){
                 try ar_req = recv ar_sr_le.res {
@@ -490,13 +482,12 @@ proc axi_demux<
                     send ar_sr_le.spill(1'd1) //sync pattern to say ready to accept after previous spill
                   }
                 }
-            } >>
-            cycle 1
+            } 
                 
-    }
+    };
 
     // R Data Transaction
-    loop{    
+    {    
         let e = recv r_fifo_ep.empty >>
         let rdy =  recv r_sr_le.rdy >>
         if ((e == 1'b0)&& (rdy == 1'b1)){
@@ -573,18 +564,19 @@ proc axi_demux<
                 send r_fifo_ep.pop(1'd1) >>
                 send r_sr_le.req(<(tc[1+:34])::r_pack_t>)
             }
-        } >>
-        cycle 1
-    }
+        } 
+    };
 
-    loop {
+    {
         try resp = recv r_sr_le.res {
             try send slv_ep.r_resp(resp) {
                 send r_sr_le.spill(1'd1)
             }
-        } >>
-        cycle 1
-    }
+        } 
+    } >>
+    cycle 1
+}
+
 
 // ------------------------------------End of the axi demux------------------------------------------------
 }
