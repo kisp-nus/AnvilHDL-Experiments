@@ -131,7 +131,7 @@ func set_rr(served_idx : logic[3], granted : logic, next_idx : logic[3]){
     }
 }
 
-func send_slv_res(data : logic[32],valid : logic,id : logic[3], next_idx : logic[3]){
+func send_slv_res(data,valid : logic,id : logic[3], next_idx : logic[3]){
     
     if(valid){
         send mst_ep.req(data) >>
@@ -158,16 +158,16 @@ func send_slv_res(data : logic[32],valid : logic,id : logic[3], next_idx : logic
 
 
 // proc rr_arbiter <dtype : type , ExtPrio : int, AxiVldRdy : int, LockIn : int, FairArb : int, IDX_WIDTH : int> (
-proc rr_arbiter(
-    slv_ep_0 : left arb_slv_ch<logic[32]>,
-    slv_ep_1 : left arb_slv_ch<logic[32]>,
-    slv_ep_2 : left arb_slv_ch<logic[32]>,
-    slv_ep_3 : left arb_slv_ch<logic[32]>,
-    slv_ep_4 : left arb_slv_ch<logic[32]>,
-    slv_ep_5 : left arb_slv_ch<logic[32]>,
-    slv_ep_6 : left arb_slv_ch<logic[32]>,
-    slv_ep_7 : left arb_slv_ch<logic[32]>,
-    mst_ep : right arb_mst_ch<logic[32], 3>,
+proc rr_arbiter <dtype : type> (
+    slv_ep_0 : left arb_slv_ch<dtype>,
+    slv_ep_1 : left arb_slv_ch<dtype>,
+    slv_ep_2 : left arb_slv_ch<dtype>,
+    slv_ep_3 : left arb_slv_ch<dtype>,
+    slv_ep_4 : left arb_slv_ch<dtype>,
+    slv_ep_5 : left arb_slv_ch<dtype>,
+    slv_ep_6 : left arb_slv_ch<dtype>,
+    slv_ep_7 : left arb_slv_ch<dtype>,
+    mst_ep : right arb_mst_ch<dtype, 3>,
     ep : left flush_ch
 ) {
     reg rr : logic[3];
@@ -183,7 +183,7 @@ proc rr_arbiter(
         let data_5 = recv slv_ep_5.data >>
         let data_6 = recv slv_ep_6.data >>
         let data_7 = recv slv_ep_7.data >>
-        let all_data = #{data_7, data_6, data_5, data_4, data_3, data_2, data_1, data_0} >>
+        let all_data  = #{data_7, data_6, data_5, data_4, data_3, data_2, data_1, data_0} >>
         call send_slv_res(all_data[selected_idx[0+:3]], (~ (selected_idx[3])), selected_idx[0+:3], next_idx[0+:3])
 
     }

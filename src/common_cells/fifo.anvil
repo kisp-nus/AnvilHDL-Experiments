@@ -1,7 +1,7 @@
 chan fifo_ch<Tp : type> {
     left push : (Tp@#1) @#1 - @dyn,
     left pop : (logic@#1) @#1 - @dyn,
-    right data_o : (Tp@#1) @#pop - @#pop,
+    right data_o : (Tp@#1) @#1 - @#1,
     right full : (logic@#1) @#1 - @#1,
     right empty : (logic@#1) @#1 - @#1
 }
@@ -26,7 +26,7 @@ proc fifo < data_t : type, depth: int, address_depth : int>(ep : left fifo_ch<da
             {// pop logic
                 if (*tail != *head){
                     try _ = recv ep.pop {
-                        send ep.data_o(*mem[*head]) >>
+                        // send ep.data_o(*mem[*head]) >>
                         set head := *head + 3'd1
                     }
                     else{
@@ -58,7 +58,7 @@ proc fifo < data_t : type, depth: int, address_depth : int>(ep : left fifo_ch<da
             else{
                 //if full
                 try _ = recv ep.pop {
-                    send ep.data_o(*mem[*head]) >>
+                    // send ep.data_o(*mem[*head]) >>
                     set head := *head + 3'd1;
                     set full := 1'b0
                 }
@@ -69,10 +69,6 @@ proc fifo < data_t : type, depth: int, address_depth : int>(ep : left fifo_ch<da
             }
     }
     loop{
-        send ep.full(*full) >>
-        cycle 1
-    }
-    loop{
         let out = if((*full == 1'b0)&&(*head == *tail)){
             1'b1
         }
@@ -80,8 +76,11 @@ proc fifo < data_t : type, depth: int, address_depth : int>(ep : left fifo_ch<da
             1'b0
         } >>
         send ep.empty(out) >>
+        send ep.full(*full) >>
+        send ep.data_o(*mem[*head]) >>
         cycle 1
     }
+    
 }
 
 
