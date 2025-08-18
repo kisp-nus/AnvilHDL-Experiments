@@ -49,36 +49,37 @@ func get_active_req(){
     else{
         // Create upper and lower masks based on round-robin pointer
         let upper_mask = match *rr {
-            3'd0 => req_vec & 8'b11111110,  // mask[7:1]
-            3'd1 => req_vec & 8'b11111100,  // mask[7:2]
-            3'd2 => req_vec & 8'b11111000,  // mask[7:3]
-            3'd3 => req_vec & 8'b11110000,  // mask[7:4]
-            3'd4 => req_vec & 8'b11100000,  // mask[7:5]
-            3'd5 => req_vec & 8'b11000000,  // mask[7:6]
-            3'd6 => req_vec & 8'b10000000,  // mask[7:7]
-            _ => 8'd0                       // no upper mask for rr=7
+            3'd0 => req_vec & 8'b11111111,  // mask[7:1]
+            3'd1 => req_vec & 8'b11111110,  // mask[7:2]
+            3'd2 => req_vec & 8'b11111100,  // mask[7:3]
+            3'd3 => req_vec & 8'b11111000,  // mask[7:4]
+            3'd4 => req_vec & 8'b11110000,  // mask[7:5]
+            3'd5 => req_vec & 8'b11100000,  // mask[7:6]
+            3'd6 => req_vec & 8'b11000000,  // mask[7:7]
+            _ => req_vec & 8'b10000000                       // no upper mask for rr=7
         } >>
         
         let lower_mask = match *rr {
-            3'd0 => req_vec & 8'b00000001,  // mask[0:0]
-            3'd1 => req_vec & 8'b00000011,  // mask[1:0]
-            3'd2 => req_vec & 8'b00000111,  // mask[2:0]
-            3'd3 => req_vec & 8'b00001111,  // mask[3:0]
-            3'd4 => req_vec & 8'b00011111,  // mask[4:0]
-            3'd5 => req_vec & 8'b00111111,  // mask[5:0]
-            3'd6 => req_vec & 8'b01111111,  // mask[6:0]
-            _ => req_vec                    // all bits for rr=7
+            3'd0 => req_vec & 8'b00000000,  // mask[0:0]
+            3'd1 => req_vec & 8'b00000001,  // mask[1:0]
+            3'd2 => req_vec & 8'b00000011,  // mask[2:0]
+            3'd3 => req_vec & 8'b00000111,  // mask[3:0]
+            3'd4 => req_vec & 8'b00001111,  // mask[4:0]
+            3'd5 => req_vec & 8'b00011111,  // mask[5:0]
+            3'd6 => req_vec & 8'b00111111,  // mask[6:0]
+            _ => req_vec & 8'b01111111                    // all bits for rr=7
         } >>
         
         // Find first set bit in upper mask (priority encoder)
-        let upper_idx = if(upper_mask[1]){ 4'd1 }
+        let upper_idx = if(upper_mask[0]){ 4'd0 }
+                       else if(upper_mask[1]){ 4'd1 }
                        else if(upper_mask[2]){ 4'd2 }
                        else if(upper_mask[3]){ 4'd3 }
                        else if(upper_mask[4]){ 4'd4 }
                        else if(upper_mask[5]){ 4'd5 }
                        else if(upper_mask[6]){ 4'd6 }
                        else if(upper_mask[7]){ 4'd7 }
-                       else { 3'd0 } >>
+                       else { 4'd0 } >>
         
         // Find first set bit in lower mask (priority encoder)
         let lower_idx = if(lower_mask[0]){ 4'd0 }
@@ -88,7 +89,8 @@ func get_active_req(){
                        else if(lower_mask[4]){ 4'd4 }
                        else if(lower_mask[5]){ 4'd5 }
                        else if(lower_mask[6]){ 4'd6 }
-                       else { 4'd7 } >>
+                       else if(lower_mask[7]){ 4'd7 }
+                       else { 4'd0 } >>
 
         // Select index: use upper if available, otherwise lower
         let selected_idx : logic[4] = if(upper_mask != 8'd0){ upper_idx } else { lower_idx } >>
