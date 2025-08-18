@@ -4,7 +4,7 @@ input logic[0:0] clk_i,
   output logic[0:0] _slv_ep_aw_req_ack,
   input logic[0:0] _slv_ep_aw_req_valid,
   input logic[34:0] _slv_ep_aw_req_0,
-  input logic[0:0] _slv_ep_aw_sel_0,
+  input logic[2:0] _slv_ep_aw_sel_0,
   output logic[0:0] _slv_ep_w_req_ack,
   input logic[0:0] _slv_ep_w_req_valid,
   input logic[35:0] _slv_ep_w_req_0,
@@ -14,7 +14,7 @@ input logic[0:0] clk_i,
   output logic[0:0] _slv_ep_ar_req_ack,
   input logic[0:0] _slv_ep_ar_req_valid,
   input logic[34:0] _slv_ep_ar_req_0,
-  input logic[0:0] _slv_ep_ar_sel_0,
+  input logic[2:0] _slv_ep_ar_sel_0,
   input logic[0:0] _slv_ep_r_resp_ack,
   output logic[0:0] _slv_ep_r_resp_valid,
   output logic[33:0] _slv_ep_r_resp_0,
@@ -47,12 +47,102 @@ input logic[0:0] clk_i,
   output logic[34:0] _mst_ep_1_mst_ar_req_0,
   output logic[0:0] _mst_ep_1_mst_r_resp_ack,
   input logic[0:0] _mst_ep_1_mst_r_resp_valid,
-  input logic[33:0] _mst_ep_1_mst_r_resp_0
+  input logic[33:0] _mst_ep_1_mst_r_resp_0,
+  input logic[0:0] _mst_ep_2_mst_aw_req_ack,
+  output logic[0:0] _mst_ep_2_mst_aw_req_valid,
+  output logic[34:0] _mst_ep_2_mst_aw_req_0,
+  input logic[0:0] _mst_ep_2_mst_w_req_ack,
+  output logic[0:0] _mst_ep_2_mst_w_req_valid,
+  output logic[35:0] _mst_ep_2_mst_w_req_0,
+  output logic[0:0] _mst_ep_2_mst_b_resp_ack,
+  input logic[0:0] _mst_ep_2_mst_b_resp_valid,
+  input logic[1:0] _mst_ep_2_mst_b_resp_0,
+  input logic[0:0] _mst_ep_2_mst_ar_req_ack,
+  output logic[0:0] _mst_ep_2_mst_ar_req_valid,
+  output logic[34:0] _mst_ep_2_mst_ar_req_0,
+  output logic[0:0] _mst_ep_2_mst_r_resp_ack,
+  input logic[0:0] _mst_ep_2_mst_r_resp_valid,
+  input logic[33:0] _mst_ep_2_mst_r_resp_0,
+  input logic[0:0] _mst_ep_3_mst_aw_req_ack,
+  output logic[0:0] _mst_ep_3_mst_aw_req_valid,
+  output logic[34:0] _mst_ep_3_mst_aw_req_0,
+  input logic[0:0] _mst_ep_3_mst_w_req_ack,
+  output logic[0:0] _mst_ep_3_mst_w_req_valid,
+  output logic[35:0] _mst_ep_3_mst_w_req_0,
+  output logic[0:0] _mst_ep_3_mst_b_resp_ack,
+  input logic[0:0] _mst_ep_3_mst_b_resp_valid,
+  input logic[1:0] _mst_ep_3_mst_b_resp_0,
+  input logic[0:0] _mst_ep_3_mst_ar_req_ack,
+  output logic[0:0] _mst_ep_3_mst_ar_req_valid,
+  output logic[34:0] _mst_ep_3_mst_ar_req_0,
+  output logic[0:0] _mst_ep_3_mst_r_resp_ack,
+  input logic[0:0] _mst_ep_3_mst_r_resp_valid,
+  input logic[33:0] _mst_ep_3_mst_r_resp_0,
+  input logic[0:0] _mst_ep_4_mst_aw_req_ack,
+  output logic[0:0] _mst_ep_4_mst_aw_req_valid,
+  output logic[34:0] _mst_ep_4_mst_aw_req_0,
+  input logic[0:0] _mst_ep_4_mst_w_req_ack,
+  output logic[0:0] _mst_ep_4_mst_w_req_valid,
+  output logic[35:0] _mst_ep_4_mst_w_req_0,
+  output logic[0:0] _mst_ep_4_mst_b_resp_ack,
+  input logic[0:0] _mst_ep_4_mst_b_resp_valid,
+  input logic[1:0] _mst_ep_4_mst_b_resp_0,
+  input logic[0:0] _mst_ep_4_mst_ar_req_ack,
+  output logic[0:0] _mst_ep_4_mst_ar_req_valid,
+  output logic[34:0] _mst_ep_4_mst_ar_req_0,
+  output logic[0:0] _mst_ep_4_mst_r_resp_ack,
+  input logic[0:0] _mst_ep_4_mst_r_resp_valid,
+  input logic[33:0] _mst_ep_4_mst_r_resp_0,
+  input logic[0:0] _mst_ep_5_mst_aw_req_ack,
+  output logic[0:0] _mst_ep_5_mst_aw_req_valid,
+  output logic[34:0] _mst_ep_5_mst_aw_req_0,
+  input logic[0:0] _mst_ep_5_mst_w_req_ack,
+  output logic[0:0] _mst_ep_5_mst_w_req_valid,
+  output logic[35:0] _mst_ep_5_mst_w_req_0,
+  output logic[0:0] _mst_ep_5_mst_b_resp_ack,
+  input logic[0:0] _mst_ep_5_mst_b_resp_valid,
+  input logic[1:0] _mst_ep_5_mst_b_resp_0,
+  input logic[0:0] _mst_ep_5_mst_ar_req_ack,
+  output logic[0:0] _mst_ep_5_mst_ar_req_valid,
+  output logic[34:0] _mst_ep_5_mst_ar_req_0,
+  output logic[0:0] _mst_ep_5_mst_r_resp_ack,
+  input logic[0:0] _mst_ep_5_mst_r_resp_valid,
+  input logic[33:0] _mst_ep_5_mst_r_resp_0,
+  input logic[0:0] _mst_ep_6_mst_aw_req_ack,
+  output logic[0:0] _mst_ep_6_mst_aw_req_valid,
+  output logic[34:0] _mst_ep_6_mst_aw_req_0,
+  input logic[0:0] _mst_ep_6_mst_w_req_ack,
+  output logic[0:0] _mst_ep_6_mst_w_req_valid,
+  output logic[35:0] _mst_ep_6_mst_w_req_0,
+  output logic[0:0] _mst_ep_6_mst_b_resp_ack,
+  input logic[0:0] _mst_ep_6_mst_b_resp_valid,
+  input logic[1:0] _mst_ep_6_mst_b_resp_0,
+  input logic[0:0] _mst_ep_6_mst_ar_req_ack,
+  output logic[0:0] _mst_ep_6_mst_ar_req_valid,
+  output logic[34:0] _mst_ep_6_mst_ar_req_0,
+  output logic[0:0] _mst_ep_6_mst_r_resp_ack,
+  input logic[0:0] _mst_ep_6_mst_r_resp_valid,
+  input logic[33:0] _mst_ep_6_mst_r_resp_0,
+  input logic[0:0] _mst_ep_7_mst_aw_req_ack,
+  output logic[0:0] _mst_ep_7_mst_aw_req_valid,
+  output logic[34:0] _mst_ep_7_mst_aw_req_0,
+  input logic[0:0] _mst_ep_7_mst_w_req_ack,
+  output logic[0:0] _mst_ep_7_mst_w_req_valid,
+  output logic[35:0] _mst_ep_7_mst_w_req_0,
+  output logic[0:0] _mst_ep_7_mst_b_resp_ack,
+  input logic[0:0] _mst_ep_7_mst_b_resp_valid,
+  input logic[1:0] _mst_ep_7_mst_b_resp_0,
+  input logic[0:0] _mst_ep_7_mst_ar_req_ack,
+  output logic[0:0] _mst_ep_7_mst_ar_req_valid,
+  output logic[34:0] _mst_ep_7_mst_ar_req_0,
+  output logic[0:0] _mst_ep_7_mst_r_resp_ack,
+  input logic[0:0] _mst_ep_7_mst_r_resp_valid,
+  input logic[33:0] _mst_ep_7_mst_r_resp_0
 );
 
 
 
-  localparam int unsigned NoMstPorts     = 2;        // Number of master ports
+  localparam int unsigned NoMstPorts     = 8;        // Number of master ports
   localparam int unsigned MaxTrans       = 8;        // Maximum transactions //Check
   localparam bit          FallThrough    = 1'b0;     // FIFO fall through mode
   localparam bit          SpillAw        = 1'b1;     // Spill register on AW
@@ -130,6 +220,63 @@ typedef logic [$clog2(NoMstPorts)-1:0] select_t;
   assign _mst_ep_1_mst_ar_req_valid = mst_reqs[1].ar_valid;
   assign _mst_ep_1_mst_r_resp_ack = mst_reqs[1].r_ready;
 
+  assign _mst_ep_2_mst_aw_req_0 = mst_reqs[2].aw;
+  assign _mst_ep_2_mst_aw_req_valid = mst_reqs[2].aw_valid;
+  assign _mst_ep_2_mst_w_req_0 = mst_reqs[2].w;
+  assign _mst_ep_2_mst_w_req_valid = mst_reqs[2].w_valid;
+  assign _mst_ep_2_mst_b_resp_ack = mst_reqs[2].b_ready;
+  assign _mst_ep_2_mst_ar_req_0 = mst_reqs[2].ar;
+  assign _mst_ep_2_mst_ar_req_valid = mst_reqs[2].ar_valid;
+  assign _mst_ep_2_mst_r_resp_ack = mst_reqs[2].r_ready;
+
+  assign _mst_ep_3_mst_aw_req_0 = mst_reqs[3].aw;
+  assign _mst_ep_3_mst_aw_req_valid = mst_reqs[3].aw_valid;
+  assign _mst_ep_3_mst_w_req_0 = mst_reqs[3].w;
+  assign _mst_ep_3_mst_w_req_valid = mst_reqs[3].w_valid;
+  assign _mst_ep_3_mst_b_resp_ack = mst_reqs[3].b_ready;
+  assign _mst_ep_3_mst_ar_req_0 = mst_reqs[3].ar;
+  assign _mst_ep_3_mst_ar_req_valid = mst_reqs[3].ar_valid;
+  assign _mst_ep_3_mst_r_resp_ack = mst_reqs[3].r_ready;
+
+  assign _mst_ep_4_mst_aw_req_0 = mst_reqs[4].aw;
+  assign _mst_ep_4_mst_aw_req_valid = mst_reqs[4].aw_valid;
+  assign _mst_ep_4_mst_w_req_0 = mst_reqs[4].w;
+  assign _mst_ep_4_mst_w_req_valid = mst_reqs[4].w_valid;
+  assign _mst_ep_4_mst_b_resp_ack = mst_reqs[4].b_ready;
+  assign _mst_ep_4_mst_ar_req_0 = mst_reqs[4].ar;
+  assign _mst_ep_4_mst_ar_req_valid = mst_reqs[4].ar_valid;
+  assign _mst_ep_4_mst_r_resp_ack = mst_reqs[4].r_ready;
+
+  assign _mst_ep_5_mst_aw_req_0 = mst_reqs[5].aw;
+  assign _mst_ep_5_mst_aw_req_valid = mst_reqs[5].aw_valid;
+  assign _mst_ep_5_mst_w_req_0 = mst_reqs[5].w;
+  assign _mst_ep_5_mst_w_req_valid = mst_reqs[5].w_valid;
+  assign _mst_ep_5_mst_b_resp_ack = mst_reqs[5].b_ready;
+  assign _mst_ep_5_mst_ar_req_0 = mst_reqs[5].ar;
+  assign _mst_ep_5_mst_ar_req_valid = mst_reqs[5].ar_valid;
+  assign _mst_ep_5_mst_r_resp_ack = mst_reqs[5].r_ready;
+
+  assign _mst_ep_6_mst_aw_req_0 = mst_reqs[6].aw;
+  assign _mst_ep_6_mst_aw_req_valid = mst_reqs[6].aw_valid;
+  assign _mst_ep_6_mst_w_req_0 = mst_reqs[6].w;
+  assign _mst_ep_6_mst_w_req_valid = mst_reqs[6].w_valid;
+  assign _mst_ep_6_mst_b_resp_ack = mst_reqs[6].b_ready;
+  assign _mst_ep_6_mst_ar_req_0 = mst_reqs[6].ar;
+  assign _mst_ep_6_mst_ar_req_valid = mst_reqs[6].ar_valid;
+  assign _mst_ep_6_mst_r_resp_ack = mst_reqs[6].r_ready;
+
+  assign _mst_ep_7_mst_aw_req_0 = mst_reqs[7].aw;
+  assign _mst_ep_7_mst_aw_req_valid = mst_reqs[7].aw_valid;
+  assign _mst_ep_7_mst_w_req_0 = mst_reqs[7].w;
+  assign _mst_ep_7_mst_w_req_valid = mst_reqs[7].w_valid;
+  assign _mst_ep_7_mst_b_resp_ack = mst_reqs[7].b_ready;
+  assign _mst_ep_7_mst_ar_req_0 = mst_reqs[7].ar;
+  assign _mst_ep_7_mst_ar_req_valid = mst_reqs[7].ar_valid;
+  assign _mst_ep_7_mst_r_resp_ack = mst_reqs[7].r_ready;
+
+
+
+
   assign slv_aw_select = _slv_ep_aw_sel_0;
   assign slv_ar_select = _slv_ep_ar_sel_0;
 
@@ -152,6 +299,66 @@ assign mst_resps[1] = '{
   b : _mst_ep_1_mst_b_resp_0,
   r_valid : _mst_ep_1_mst_r_resp_valid,
   r : _mst_ep_1_mst_r_resp_0
+};
+
+assign mst_resps[2] = '{
+  aw_ready : _mst_ep_2_mst_aw_req_ack,
+  ar_ready : _mst_ep_2_mst_ar_req_ack,
+  w_ready : _mst_ep_2_mst_w_req_ack,
+  b_valid : _mst_ep_2_mst_b_resp_valid,
+  b : _mst_ep_2_mst_b_resp_0,
+  r_valid : _mst_ep_2_mst_r_resp_valid,
+  r : _mst_ep_2_mst_r_resp_0
+};
+
+assign mst_resps[3] = '{
+  aw_ready : _mst_ep_3_mst_aw_req_ack,
+  ar_ready : _mst_ep_3_mst_ar_req_ack,
+  w_ready : _mst_ep_3_mst_w_req_ack,
+  b_valid : _mst_ep_3_mst_b_resp_valid,
+  b : _mst_ep_3_mst_b_resp_0,
+  r_valid : _mst_ep_3_mst_r_resp_valid,
+  r : _mst_ep_3_mst_r_resp_0
+};
+
+assign mst_resps[4] = '{
+  aw_ready : _mst_ep_4_mst_aw_req_ack,
+  ar_ready : _mst_ep_4_mst_ar_req_ack,
+  w_ready : _mst_ep_4_mst_w_req_ack,
+  b_valid : _mst_ep_4_mst_b_resp_valid,
+  b : _mst_ep_4_mst_b_resp_0,
+  r_valid : _mst_ep_4_mst_r_resp_valid,
+  r : _mst_ep_4_mst_r_resp_0
+};
+
+assign mst_resps[5] = '{
+  aw_ready : _mst_ep_5_mst_aw_req_ack,
+  ar_ready : _mst_ep_5_mst_ar_req_ack,
+  w_ready : _mst_ep_5_mst_w_req_ack,
+  b_valid : _mst_ep_5_mst_b_resp_valid,
+  b : _mst_ep_5_mst_b_resp_0,
+  r_valid : _mst_ep_5_mst_r_resp_valid,
+  r : _mst_ep_5_mst_r_resp_0
+};
+
+assign mst_resps[6] = '{
+  aw_ready : _mst_ep_6_mst_aw_req_ack,
+  ar_ready : _mst_ep_6_mst_ar_req_ack,
+  w_ready : _mst_ep_6_mst_w_req_ack,
+  b_valid : _mst_ep_6_mst_b_resp_valid,
+  b : _mst_ep_6_mst_b_resp_0,
+  r_valid : _mst_ep_6_mst_r_resp_valid,
+  r : _mst_ep_6_mst_r_resp_0
+};
+
+assign mst_resps[7] = '{
+  aw_ready : _mst_ep_7_mst_aw_req_ack,
+  ar_ready : _mst_ep_7_mst_ar_req_ack,
+  w_ready : _mst_ep_7_mst_w_req_ack,
+  b_valid : _mst_ep_7_mst_b_resp_valid,
+  b : _mst_ep_7_mst_b_resp_0,
+  r_valid : _mst_ep_7_mst_r_resp_valid,
+  r : _mst_ep_7_mst_r_resp_0
 };
 
 

@@ -65,6 +65,7 @@ cat > demux.flist << EOF
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/addr_decode.sv
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/addr_decode_napot.sv
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/multiaddr_decode.sv
+/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/lzc.sv
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/src/axi_pkg.sv
 /home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/src/axi_lite_demux.sv
 ${TESTBENCH_PATH_FILE}
