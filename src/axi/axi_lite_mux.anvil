@@ -44,26 +44,26 @@ proc axi_lite_mux<
     chan r_fifo_le -- r_fifo_ep : fifo_ch<select_t>;
     
     // Round-robin arbiter channels for AW and AR
-    chan aw_arb_slv_ep_0_le -- aw_arb_slv_ep_0_ri : arb_slv_ch<aw_pack_t>;
-    chan aw_arb_slv_ep_1_le -- aw_arb_slv_ep_1_ri : arb_slv_ch<aw_pack_t>;
-    chan aw_arb_slv_ep_2_le -- aw_arb_slv_ep_2_ri : arb_slv_ch<aw_pack_t>;
-    chan aw_arb_slv_ep_3_le -- aw_arb_slv_ep_3_ri : arb_slv_ch<aw_pack_t>;
-    chan aw_arb_slv_ep_4_le -- aw_arb_slv_ep_4_ri : arb_slv_ch<aw_pack_t>;
-    chan aw_arb_slv_ep_5_le -- aw_arb_slv_ep_5_ri : arb_slv_ch<aw_pack_t>;
-    chan aw_arb_slv_ep_6_le -- aw_arb_slv_ep_6_ri : arb_slv_ch<aw_pack_t>;
-    chan aw_arb_slv_ep_7_le -- aw_arb_slv_ep_7_ri : arb_slv_ch<aw_pack_t>;
+    chan aw_arb_slv_ep_0_le -- aw_arb_slv_ep_0_ri : arb_slv_ch<logic>;
+    chan aw_arb_slv_ep_1_le -- aw_arb_slv_ep_1_ri : arb_slv_ch<logic>;
+    chan aw_arb_slv_ep_2_le -- aw_arb_slv_ep_2_ri : arb_slv_ch<logic>;
+    chan aw_arb_slv_ep_3_le -- aw_arb_slv_ep_3_ri : arb_slv_ch<logic>;
+    chan aw_arb_slv_ep_4_le -- aw_arb_slv_ep_4_ri : arb_slv_ch<logic>;
+    chan aw_arb_slv_ep_5_le -- aw_arb_slv_ep_5_ri : arb_slv_ch<logic>;
+    chan aw_arb_slv_ep_6_le -- aw_arb_slv_ep_6_ri : arb_slv_ch<logic>;
+    chan aw_arb_slv_ep_7_le -- aw_arb_slv_ep_7_ri : arb_slv_ch<logic>;
 
-    chan aw_arb_mst_ch_le -- aw_arb_mst_ch_ri : arb_mst_ch<aw_pack_t, 3>;
+    chan aw_arb_mst_ch_le -- aw_arb_mst_ch_ri : arb_mst_ch<logic, 3>;
     
-    chan ar_arb_slv_ep_0_le -- ar_arb_slv_ep_0_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_slv_ep_1_le -- ar_arb_slv_ep_1_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_slv_ep_2_le -- ar_arb_slv_ep_2_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_slv_ep_3_le -- ar_arb_slv_ep_3_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_slv_ep_4_le -- ar_arb_slv_ep_4_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_slv_ep_5_le -- ar_arb_slv_ep_5_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_slv_ep_6_le -- ar_arb_slv_ep_6_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_slv_ep_7_le -- ar_arb_slv_ep_7_ri : arb_slv_ch<ar_pack_t>;
-    chan ar_arb_mst_ch_le -- ar_arb_mst_ch_ri : arb_mst_ch<ar_pack_t, 3>;
+    chan ar_arb_slv_ep_0_le -- ar_arb_slv_ep_0_ri : arb_slv_ch<logic>;
+    chan ar_arb_slv_ep_1_le -- ar_arb_slv_ep_1_ri : arb_slv_ch<logic>;
+    chan ar_arb_slv_ep_2_le -- ar_arb_slv_ep_2_ri : arb_slv_ch<logic>;
+    chan ar_arb_slv_ep_3_le -- ar_arb_slv_ep_3_ri : arb_slv_ch<logic>;
+    chan ar_arb_slv_ep_4_le -- ar_arb_slv_ep_4_ri : arb_slv_ch<logic>;
+    chan ar_arb_slv_ep_5_le -- ar_arb_slv_ep_5_ri : arb_slv_ch<logic>;
+    chan ar_arb_slv_ep_6_le -- ar_arb_slv_ep_6_ri : arb_slv_ch<logic>;
+    chan ar_arb_slv_ep_7_le -- ar_arb_slv_ep_7_ri : arb_slv_ch<logic>;
+    chan ar_arb_mst_ch_le -- ar_arb_mst_ch_ri : arb_mst_ch<logic, 3>;
     
     chan aw_flush_ep_le -- aw_flush_ep_ri : flush_ch;
     chan ar_flush_ep_le -- ar_flush_ep_ri : flush_ch;
@@ -80,13 +80,13 @@ proc axi_lite_mux<
     spawn spill_reg< 5, r_pack_t, R_BYPASS >(r_sr_ri);
     
     // Round-robin arbiters for AW and AR channels
-    spawn rr_arbiter(
+    spawn rr_arbiter<logic>(
         aw_arb_slv_ep_0_le, aw_arb_slv_ep_1_le, aw_arb_slv_ep_2_le, aw_arb_slv_ep_3_le,
         aw_arb_slv_ep_4_le, aw_arb_slv_ep_5_le, aw_arb_slv_ep_6_le, aw_arb_slv_ep_7_le,
         aw_arb_mst_ch_ri, aw_flush_ep_le
     );
     
-    spawn rr_arbiter(
+    spawn rr_arbiter<logic>(
         ar_arb_slv_ep_0_le, ar_arb_slv_ep_1_le, ar_arb_slv_ep_2_le, ar_arb_slv_ep_3_le,
         ar_arb_slv_ep_4_le, ar_arb_slv_ep_5_le, ar_arb_slv_ep_6_le, ar_arb_slv_ep_7_le,
         ar_arb_mst_ch_ri, ar_flush_ep_le
@@ -113,6 +113,17 @@ proc axi_lite_mux<
         send aw_arb_slv_ep_5_ri.req((ready slv_ep_5.aw_req))>>
         send aw_arb_slv_ep_6_ri.req((ready slv_ep_6.aw_req))>>
         send aw_arb_slv_ep_7_ri.req((ready slv_ep_7.aw_req))>>
+
+
+        send aw_arb_slv_ep_0_ri.data(1'd0) >>
+        send aw_arb_slv_ep_1_ri.data(1'd0) >>
+        send aw_arb_slv_ep_2_ri.data(1'd0) >>
+        send aw_arb_slv_ep_3_ri.data(1'd0) >>
+        send aw_arb_slv_ep_4_ri.data(1'd0) >>
+        send aw_arb_slv_ep_5_ri.data(1'd0) >>
+        send aw_arb_slv_ep_6_ri.data(1'd0) >>
+        send aw_arb_slv_ep_7_ri.data(1'd0) >>
+
 
         let gnt_0 = recv aw_arb_slv_ep_0_ri.gnt >>
         let gnt_1 = recv aw_arb_slv_ep_1_ri.gnt >>
@@ -359,6 +370,15 @@ proc axi_lite_mux<
         send ar_arb_slv_ep_5_ri.req((ready slv_ep_5.ar_req))>>
         send ar_arb_slv_ep_6_ri.req((ready slv_ep_6.ar_req))>>
         send ar_arb_slv_ep_7_ri.req((ready slv_ep_7.ar_req))>>
+
+        send ar_arb_slv_ep_0_ri.data(1'd0) >>
+        send ar_arb_slv_ep_1_ri.data(1'd0) >>
+        send ar_arb_slv_ep_2_ri.data(1'd0) >>
+        send ar_arb_slv_ep_3_ri.data(1'd0) >>
+        send ar_arb_slv_ep_4_ri.data(1'd0) >>
+        send ar_arb_slv_ep_5_ri.data(1'd0) >>
+        send ar_arb_slv_ep_6_ri.data(1'd0) >>
+        send ar_arb_slv_ep_7_ri.data(1'd0) >>
 
         let gnt_0 = recv ar_arb_slv_ep_0_ri.gnt >>
         let gnt_1 = recv ar_arb_slv_ep_1_ri.gnt >>
