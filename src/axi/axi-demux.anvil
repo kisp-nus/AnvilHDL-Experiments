@@ -17,7 +17,7 @@ proc axi_demux<
               NoMstPorts : int
             >
 (
-    slv_ep: left slave_ch,
+    slv_ep: left slave_demux_ch,
     mst_ep_0: left master_ch,
     mst_ep_1: left master_ch
 )
@@ -46,7 +46,8 @@ proc axi_demux<
 
 //---------------------------------------------Write Transaction------------------------------------------------------------
     loop{//AW slv req bypass
-        try _ = recv aw_sr_le.rdy{
+        let rdy = recv aw_sr_le.rdy >>
+        if (rdy == 1'd1){
             let aw_req = recv slv_ep.aw_req  >>
             let sel = recv slv_ep.aw_sel >>
             let aw_sel_pack = aw_sel_pack_t::{
@@ -89,7 +90,8 @@ proc axi_demux<
         // W Channel Transaction
 
         loop{//W slv req bypass
-            try _ = recv w_sr_le.rdy{
+            let rdy = recv w_sr_le.rdy >>
+            if (rdy == 1'd1){
                 let w_req = recv slv_ep.w_req >>
                 send w_sr_le.req(w_req)//To Do: add syncpattern as anytime immmediately after a message
             } >>
@@ -138,7 +140,8 @@ proc axi_demux<
             cycle 1
         }
         else {
-            try _ = recv b_sr_le.rdy {
+            let rdy = recv b_sr_le.rdy >>
+            if (rdy == 1'd1) {
                 send b_fifo_ep.pop(1'd1) >>
                 let b_mst = recv b_fifo_ep.data_o >>
                 match b_mst {
@@ -170,10 +173,10 @@ proc axi_demux<
 // ----------------------------------------------Read Transaction------------------------------------------------------------
 
     loop{//AR slv req bypass
-        try _ = recv ar_sr_le.rdy{
+        let rdy = recv ar_sr_le.rdy >>
+        if (rdy == 1'd1) {
             let ar_req = recv slv_ep.ar_req >>
             let sel = recv slv_ep.ar_sel >>
-            let rdy = ready slv_ep.ar_req >>
             // dprint "[Cycle %d] %d AR Request: %h | %h" (*cyc, rdy,ar_req.addr, sel) >>
             let ar_sel_pack = ar_sel_pack_t::{
                 ar_pack = ar_req;
@@ -212,7 +215,8 @@ proc axi_demux<
     // R Data Transaction
     loop{    
         let e = recv r_fifo_ep.empty >>
-        if (e == 1'b1){
+        let rdy =  recv r_sr_le.rdy >>
+        if ((e == 1'b1) || (rdy == 1'b0)){
             cycle 1
         }
         else {
@@ -220,12 +224,10 @@ proc axi_demux<
             let r_mst = recv r_fifo_ep.data_o >>
             match r_mst {
                 0 => {
-                        let _ = recv r_sr_le.rdy >>
                         let r_res = recv mst_ep_0.mst_r_resp >>
                         send r_sr_le.req(r_res)
                 },
                 1 => {
-                        let _ = recv r_sr_le.rdy >>
                         let r_res = recv mst_ep_1.mst_r_resp >>
                         send r_sr_le.req(r_res)
                 },

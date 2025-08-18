@@ -3,7 +3,7 @@ import "axi-demux.anvil"
 
 proc axi_router_top()
 {
-    chan slv_ep_le -- slv_ep_ri : slave_ch;
+    chan slv_ep_le -- slv_ep_ri : slave_demux_ch;
     chan ep0_le -- ep0_ri : master_ch;
     chan ep1_le -- ep1_ri : master_ch;
     spawn master_dummy<1>(ep0_ri);

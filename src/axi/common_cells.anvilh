@@ -47,9 +47,7 @@ chan slave_demux_ch{
     left ar_req : (ar_pack_t@#1),
     left ar_sel : (select_t@#1) @#ar_req - @#ar_req,
 
-    right r_resp : (r_pack_t@#1),
-
-    left sel : (select_t@#1)
+    right r_resp : (r_pack_t@#1)
 
 }
 chan slave_mux_ch{
@@ -62,9 +60,8 @@ chan slave_mux_ch{
 
     left ar_req : (ar_pack_t@#1),
 
-    right r_resp : (r_pack_t@#1),
+    right r_resp : (r_pack_t@#1)
 
-    left sel : (select_t@#1)
 
 }
 
