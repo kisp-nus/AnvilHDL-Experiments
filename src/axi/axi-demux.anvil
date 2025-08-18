@@ -1,6 +1,5 @@
 
 import "common_cells.anvilh"
-import "fifo.anvil"
 
 proc axi_demux<
                 T : type,
