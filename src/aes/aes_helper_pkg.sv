@@ -139,17 +139,22 @@ module aes_cipher_core_wrapper (
   output logic[0:0] _ep_crypt_ack,
   input logic[0:0] _ep_crypt_valid,
   input logic[127:0] _ep_crypt_0,
-  input logic[391:0] _ep_ctrl_0,
+  input logic[5:0] _ep_ctrl_0,
   input logic[0:0] _ep_crypt_res_ack,
   output logic[0:0] _ep_crypt_res_valid,
-  output logic[259:0] _ep_crypt_res_0,
-  input logic[0:0] _ep_dec_key_gen_res_ack,
+  output logic[257:0] _ep_crypt_res_0,
   output logic[0:0] _ep_dec_key_gen_res_valid,
   output logic[0:0] _ep_dec_key_gen_res_0,
+  input logic[0:0] _ep_data_out_clear_i_valid,
+  input logic[127:0] _ep_data_out_clear_i_0,
+  input logic[0:0] _ep_key_clear_i_valid,
+  input logic[255:0] _ep_key_clear_i_0,
+  output logic[0:0] _ep_data_out_clear_o_0,
+  output logic[0:0] _ep_key_clear_o_0,
   input logic[0:0] _entr_ep_req_ack,
   output logic[0:0] _entr_ep_req_valid,
   output logic[0:0] _entr_ep_req_0,
-  input logic[127:0] _entr_ep_res_0
+  input logic[0:0] _entr_ep_res_0
 );
 
   localparam int NumShares = 1;
@@ -192,7 +197,7 @@ module aes_cipher_core_wrapper (
   logic        [3:0][3:0][7:0] state_o [NumShares];
   
   assign in_valid_i = (_ep_crypt_valid | _ep_dec_key_gen_req_valid)&(in_ready_o == aes_pkg::SP2V_HIGH) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
-  assign out_ready_i = (out_valid_o == aes_pkg::SP2V_HIGH && ((_ep_crypt_res_ack == 1'd1)||(_ep_dec_key_gen_res_ack == 1'd1))) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
+  assign out_ready_i = (out_valid_o == aes_pkg::SP2V_HIGH && ((_ep_crypt_res_ack == 1'd1)||(_ep_key_clear_i_valid == 1'd0 && _ep_data_out_clear_i_valid == 1'd0))) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
   assign op_i = aes_pkg::ciph_op_e'(_ep_ctrl_0[0+:2]);
   assign cfg_valid_i = _ep_ctrl_0[2];
   assign crypt_i = (_ep_crypt_valid) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
@@ -200,13 +205,13 @@ module aes_cipher_core_wrapper (
   assign state_init_i[0] = _ep_crypt_0;
   assign key_init_i[0] = _ep_key_pack_0[0+:256];
   assign key_len_i = aes_pkg::key_len_e'(_ep_key_len_i_0);
-  assign prng_reseed_i = _ep_ctrl_0[391];
-  assign key_clear_i = _ep_ctrl_0[390];
-  assign data_out_clear_i = _ep_ctrl_0[389];
-  assign alert_fatal_i = _ep_ctrl_0[388];
+  assign prng_reseed_i = _ep_ctrl_0[5];
+  assign key_clear_i = _ep_key_clear_i_valid;
+  assign data_out_clear_i = _ep_data_out_clear_i_valid;
+  assign alert_fatal_i = _ep_ctrl_0[4];
   assign force_masks_i = _ep_ctrl_0[3];
-  assign prd_clearing_key_i[0] = _ep_ctrl_0[4+:256];
-  assign prd_clearing_state_i[0] = _ep_ctrl_0[260+:128];
+  assign prd_clearing_key_i[0] = _ep_key_clear_i_0;
+  assign prd_clearing_state_i[0] = _ep_data_out_clear_i_0;
   assign entropy_ack_i = _entr_ep_req_ack;
   assign entropy_i = _entr_ep_res_0; 
   
@@ -220,10 +225,10 @@ module aes_cipher_core_wrapper (
   assign _ep_dec_key_gen_res_valid = ((out_valid_o == aes_pkg::SP2V_HIGH)&&(dec_key_gen_o == aes_pkg::SP2V_HIGH)) ? 1'b1 : 1'b0;
   assign _ep_crypt_res_0[0+:128] = state_o[0];
   assign _ep_crypt_res_0[128] = prng_reseed_o;
-  assign _ep_crypt_res_0[129] = key_clear_o;
-  assign _ep_crypt_res_0[130] = data_out_clear_o;
-  assign _ep_crypt_res_0[131] = alert_o;
-  assign _ep_crypt_res_0[132+:128] = data_in_mask_o[0];
+  assign _ep_key_clear_o_0 = key_clear_o;
+  assign _ep_data_out_clear_o_0 = data_out_clear_o;
+  assign _ep_crypt_res_0[129] = alert_o;
+  assign _ep_crypt_res_0[130+:128] = data_in_mask_o[0];
   assign _ep_dec_key_gen_res_0[0] = alert_o;
   assign _entr_ep_req_valid = entropy_req_o;
   assign _entr_ep_req_0 =entropy_req_o;
