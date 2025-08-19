@@ -197,7 +197,7 @@ module aes_cipher_core_wrapper (
   logic        [3:0][3:0][7:0] state_o [NumShares];
   
   assign in_valid_i = (_ep_crypt_valid | _ep_dec_key_gen_req_valid)&(in_ready_o == aes_pkg::SP2V_HIGH) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
-  assign out_ready_i = (out_valid_o == aes_pkg::SP2V_HIGH && ((_ep_crypt_res_ack == 1'd1)||(_ep_key_clear_i_valid == 1'd0 && _ep_data_out_clear_i_valid == 1'd0))) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
+  assign out_ready_i = ((_ep_crypt_res_ack == 1'd1)||(_ep_key_clear_i_valid == 1'd0 && _ep_data_out_clear_i_valid == 1'd0)) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
   assign op_i = aes_pkg::ciph_op_e'(_ep_ctrl_0[0+:2]);
   assign cfg_valid_i = _ep_ctrl_0[2];
   assign crypt_i = (_ep_crypt_valid) ? aes_pkg::SP2V_HIGH : aes_pkg::SP2V_LOW;
