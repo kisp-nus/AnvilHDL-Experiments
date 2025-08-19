@@ -202,8 +202,8 @@ func ROUND_FINISH(){
     send ep.crypt_res(aes_core_out_pack::{state_o = add_rk_out;
                                         data_in_mask_o = null;
                                         alert_o = 1'd0; //To:Do fix this
-                                        data_out_clear_o = 1'd0;
-                                        key_clear_o = 1'd0;
+                                        // data_out_clear_o = 1'd0;
+                                        // key_clear_o = 1'd0;
                                         prng_reseed_o = 1'd0 }) >>
     set cipher_state := add_rk_out;
     set state := state_e::INIT
@@ -283,19 +283,32 @@ proc aes_cipher_core(ep : left aes_core_ch, entr_ep : right entropy_ch<1>){
     reg key_len_r : key_len_e;
     reg op_r : ciph_op_e;
 
-    loop{
-        match *state{
-            state_e::KEY_GEN => call KEY_GEN(),
-            state_e::ENCRYPT => call ENCRYPT(),
-            _ => call INIT()
-        }
-    }
-    
-
     loop {
-        send entr_ep.req(1'd1) >>
-        let entropy = recv entr_ep.res >>
-        cycle 1
+        try prd_state = recv ep.data_out_clear_i{
+            set cipher_state := prd_state >>
+            send ep.data_out_clear_o(1'd1) >>
+            send ep.key_clear_o(1'd0) >>
+            set state := state_e::INIT
+        }
+        else try kd = recv ep.key_clear_i{
+            let key_state = recv ep.key_pack >>
+            let key_len = recv ep.key_len_i >>
+            send key_ri.init(init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}) >>
+            {set key := kd;
+            set dec_key := kd }  >>
+            send ep.key_clear_o(1'd1) >>
+            send ep.data_out_clear_o(1'd0) >>
+            set state := state_e::INIT
+        }
+        else{
+            send ep.key_clear_o(1'd0) >>
+            send ep.data_out_clear_o(1'd0) >>
+            match *state{
+                state_e::KEY_GEN => call KEY_GEN(),
+                state_e::ENCRYPT => call ENCRYPT(),
+                _ => call INIT()
+            }
+        }
     }
 
 }
