@@ -12,8 +12,8 @@ proc stream_fifo_extern (ep : left stream_fifo_ch<logic[32]>) extern("passthroug
 
 proc stream_fifo_top(){
     chan ep_le -- ep_ri : stream_fifo_ch<logic[32]>;
-    // spawn stream_fifo_extern(ep_le);
-    spawn stream_fifo<8,1,logic[32],3>(ep_le);
+    spawn stream_fifo_extern(ep_le);
+    // spawn stream_fifo<8,1,logic[32],3>(ep_le);
     reg cyc : logic[32];
     reg flush : logic;
     loop{
@@ -25,7 +25,6 @@ proc stream_fifo_top(){
         set cyc := *cyc + 32'd1
     }
     loop{
-        cycle 10 >>
         dprint "[Cycle %d] Sending data to FIFO" (*cyc) >>
         send ep_ri.push(32'd51) >>
         cycle 1 >>
@@ -43,20 +42,27 @@ proc stream_fifo_top(){
         cycle 1 >>
         send ep_ri.push(32'd58) >>
         cycle 1 >>
-        dprint "[Cycle %d] The fifo is full now, we should be able to make read and write work in same cycle" (*cyc) >>
-
-        cycle 1 >>
-        let x = recv ep_ri.pop >>
-        dprint "[Cycle %d] Received data from FIFO: %d" (*cyc, x) >>
         send ep_ri.push(32'd59) >>
-        dprint "[Cycle %d] Same cycle read write worked" (*cyc) >>
         cycle 1 >>
-
         send ep_ri.push(32'd60) >>
-        dprint "[Cycle %d] Same cycle read write wont work untill flushed" (*cyc) >>
+        dprint "[Cycle %d] The fifo is full now, we should be able to make read and write work in same cycle" (*cyc) >>
+        let p = recv ep_ri.pop >>
+        dprint "[Cycle %d] Received data from FIFO: %d" (*cyc, p) >>
+
         cycle 1 >>
         dfinish >>
         cycle 1
+        // let x = recv ep_ri.pop >>
+        // dprint "[Cycle %d] Received data from FIFO: %d" (*cyc, x) >>
+        // send ep_ri.push(32'd59) >>
+        // dprint "[Cycle %d] Same cycle read write worked" (*cyc) >>
+        // cycle 1 >>
+
+        // send ep_ri.push(32'd60) >>
+        // dprint "[Cycle %d] Same cycle read write wont work untill flushed" (*cyc) >>
+        // cycle 1 >>
+        // dfinish >>
+        // cycle 1
 
     }
     loop{

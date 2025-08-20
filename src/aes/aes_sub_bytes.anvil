@@ -116,9 +116,10 @@ proc aes_sub_bytes(ep : left sub_bytes_ch){
     //     set cycle_count := *cycle_count + 32'd1
     // }
     loop{
-        let data_in = recv ep.req >>
-        let data_out = call use_sbox(data_in)>>
-        send ep.res(data_out) >>
+        try data_in = recv ep.req{
+            let data_out = call use_sbox(data_in)>>
+            send ep.res(data_out)
+        } >>
         cycle 1
     }
 }

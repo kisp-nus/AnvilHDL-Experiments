@@ -53,10 +53,12 @@ func KEY_GEN (){
     else if (i == last_round){
         send key_ri.req(aes_key_expand_in_pack::{key = *dec_key; round = i; ctrl = init_pack::{op = ciph_op_e::CIPH_FWD; key_len = key_len}}) >>
         let key_out_pack = recv key_ri.res >>
-        send ep.dec_key_gen_res(1'd1) >> // Maybe send error alert
         set dec_key := key_out_pack.key;
+       { 
+        send ep.dec_key_gen_res(1'd1) >> // Maybe send error alert
         set round := 4'd0;
         set state := state_e::INIT
+       }
     }
     else{
         set state := state_e::INIT
