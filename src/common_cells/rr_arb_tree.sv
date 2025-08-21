@@ -205,7 +205,7 @@ localparam int unsigned DataWidth = 32;
 typedef logic[31:0] DataType;
 localparam bit FairArb = 1'b1;
 localparam bit ExtPrio = 1'b0;
-localparam bit LockIn = 1'b1;
+localparam bit LockIn = 1'b0;
 localparam bit AxiVldRdy = 1'b0;
 localparam int unsigned IdxWidth = 3;
 typedef logic[2:0] idx_t;

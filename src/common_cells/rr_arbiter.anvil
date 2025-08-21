@@ -140,6 +140,7 @@ func send_slv_res(data,valid : logic,id : logic[3], next_idx : logic[3]){
     let gnt = recv mst_ep.gnt >>
     let op = #flat{7'd0, (gnt&valid)} >>
     let idx = #flat{5'd0,id} >>
+    // dprint "[Cycle %d] Selected Request = %d" (*cyc, idx) >>
     let resp : logic[8] = (op << idx) >>
     send slv_ep_0.gnt(resp[0]) >>
     send slv_ep_1.gnt(resp[1]) >>
@@ -151,14 +152,14 @@ func send_slv_res(data,valid : logic,id : logic[3], next_idx : logic[3]){
     send slv_ep_7.gnt(resp[7]) >>
     let granted_mask : logic[3] = #{(gnt&valid),(gnt&valid),(gnt&valid)} >>
     let granted_flip : logic[3] = ~ granted_mask >>
-    set rr := (((*rr)&(granted_flip) )|((next_idx)&(granted_flip)))
+    set rr := (((*rr)&(granted_flip) )|((next_idx)&(granted_mask)))
 }
 
 
 
 
 // proc rr_arbiter <dtype : type , ExtPrio : int, AxiVldRdy : int, LockIn : int, FairArb : int, IDX_WIDTH : int> (
-proc rr_arbiter <dtype : type> (
+proc rr_arbiter <idw: int, dtype : type> (
     slv_ep_0 : left arb_slv_ch<dtype>,
     slv_ep_1 : left arb_slv_ch<dtype>,
     slv_ep_2 : left arb_slv_ch<dtype>,

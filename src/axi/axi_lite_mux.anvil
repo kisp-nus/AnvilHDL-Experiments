@@ -80,18 +80,17 @@ proc axi_lite_mux<
     spawn spill_reg< 5, r_pack_t, R_BYPASS >(r_sr_ri);
     
     // Round-robin arbiters for AW and AR channels
-    spawn rr_arbiter<logic>(
+    spawn rr_arbiter<1,logic>(
         aw_arb_slv_ep_0_le, aw_arb_slv_ep_1_le, aw_arb_slv_ep_2_le, aw_arb_slv_ep_3_le,
         aw_arb_slv_ep_4_le, aw_arb_slv_ep_5_le, aw_arb_slv_ep_6_le, aw_arb_slv_ep_7_le,
         aw_arb_mst_ch_ri, aw_flush_ep_le
     );
     
-    spawn rr_arbiter<logic>(
+    spawn rr_arbiter<0,logic>(
         ar_arb_slv_ep_0_le, ar_arb_slv_ep_1_le, ar_arb_slv_ep_2_le, ar_arb_slv_ep_3_le,
         ar_arb_slv_ep_4_le, ar_arb_slv_ep_5_le, ar_arb_slv_ep_6_le, ar_arb_slv_ep_7_le,
         ar_arb_mst_ch_ri, ar_flush_ep_le
     );
-
 //---------------------------------------------Write Transaction------------------------------------------------------------
     loop{
         send aw_flush_ep_ri.flush(1'd0) >>
@@ -219,6 +218,7 @@ proc axi_lite_mux<
         } >>
         if (awp[0]){
             let aw_p = (<(awp[1+:35])::aw_sel_pack_t>) >>
+            send w_fifo_ep.push(awp[1+:3]) >>
             send aw_sr_le.req(aw_p)
         } 
     };
@@ -249,7 +249,6 @@ proc axi_lite_mux<
         } >>
         if (tc[0] == 1'd1){
                 // let sel = (<(tc[1+:3])::select_t>)  >>
-                send w_fifo_ep.push(tc[1+:3]) >>
                 send aw_sr_le.spill(1'd1)
         }
       }
@@ -333,11 +332,15 @@ proc axi_lite_mux<
                 }
             } >>
             if(tc[0]){
+                // dprint "[Cycle %d] Sending W req %h" (*cyc, tc[1+:35]) >>
                 send w_sr_le.req(tc[1+:35]) >>
                 send w_fifo_ep.pop(1'd1)
             }
 
         }
+        // else{
+        //     // dprint "[Cycle %d] Not ready for w trans %d | %d | %d" (*cyc, rdy, w_fifo_empty, b_fifo_full)
+        // }
     };
     {
         let tc = try w_req = recv w_sr_le.res{
