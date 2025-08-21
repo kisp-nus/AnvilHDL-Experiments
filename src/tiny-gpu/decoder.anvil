@@ -40,6 +40,7 @@ struct decoded_res_pack_t{
 
 
 chan decoder_ch{
+    left reset : (logic@#1) @#1 - @#1,
     left req : (logic[16]@#1) @#1 - @dyn,
     right res : (decoded_res_pack_t@req) @#req+1 - @#req+1
 }
@@ -47,7 +48,7 @@ chan decoder_ch{
 
 proc decoder(ep : left decoder_ch) {
     reg resp : decoded_res_pack_t;
-    loop{
+    loop ep.reset{
         let inp = recv ep.req >>
         let op = (< (inp[12+:4]) :: gpu_op >) >>
         let null_0 : decoded_res_pack_t = (< (34'd0) :: decoded_res_pack_t >) >>

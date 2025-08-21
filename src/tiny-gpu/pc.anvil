@@ -2,48 +2,27 @@ const DATA_MEM_DATA_BITS = 8;
 const PROGRAM_MEM_ADDR_BITS = 8;
 
 
-
-chan pc_ch {
-    left enable : (logic[1]@eternal) @#1 - @#1,
-    left req : (logic@next_pc) @#1 - @dyn,
-    left current_pc : (logic[8]@next_pc) @#req - @#req,
-    left dec_imm : (logic[8]@next_pc) @#req - @#req,
-    right next_pc : (logic[8]@current_pc) @#req+1 - @#req+1,
-    left decoded_nzp : (logic[3]@eternal) @#1 - @#1,
-    left alu_dec_res : (logic[8]@alu_dec_res) @#1 - @dyn
-
-}
-
-
 proc pc(ep : left pc_ch){
     reg nzp : logic[3];
     reg next_pc : logic[8];
-    loop{
-        let en = recv ep.enable >>
-        let dec_nzp = recv ep.decoded_nzp >>
-        if(en){
-            let req = recv ep.req >>
-            let current_pc = recv ep.current_pc >>
-            let dec_imm = recv ep.dec_imm >>
-            if(req == 1'd1){
-                if(((*nzp)&dec_nzp) != 3'b000){
-                    set next_pc := dec_imm
+    loop ep.reset{
+        try req = recv ep.req{
+            if(req.decoded_pc_mux){
+            
+                if(((*nzp)&(req.decoded_nzp)) == 3'd0){
+                    set next_pc := req.decoded_immediate
                 }
                 else{
-                    set next_pc := current_pc + 8'd1
+                    set next_pc := req.current_pc + 8'd1
                 }
             }
             else{
-                set next_pc := current_pc + 8'd1
-            } >>
-            send ep.next_pc(*next_pc)
+                set next_pc := req.current_pc + 8'd1
+            }
         }
-        else{
-            cycle 1
+        else try nz = recv ep.update_nzp{
+            set nzp := nz
         }
     }
-    loop{
-        let alu_out = recv ep.alu_dec_res >>
-        set nzp := alu_out[0+:3]
-    }
+    
 }

@@ -1,25 +1,3 @@
-struct reg_pack_t {
-    rs : logic[8],
-    rt : logic[8]
-}
-struct write_pack_t{
-    addr : logic[8],
-    data : logic[8]
-}
-chan lsu_mem_ch{
-    left read_req : (logic[8]@read_res),
-    right read_res : (logic[8]@read_req),
-    left write_req : (write_pack_t@write_res),
-    right write_res : (logic@write_req)
-}
-
-
-chan lsu_ch {
-    left enable : (logic[1]@eternal) @#1 - @#1,
-    left req : (logic[2]@out) @#1 - @dyn, //TO do replace with new sync pattern
-    left reg_pack : (reg_pack_t@out) @#req - @#req,
-    right out : (logic[8]@req) @dyn - @#1
-}
 // {
 // write_en
 // read_en
@@ -27,29 +5,24 @@ chan lsu_ch {
 proc lsu(ep : left lsu_ch, mem_ep : right lsu_mem_ch){
     reg lsu_out : logic[8];
     loop{
-        let en = recv ep.enable >>
-        if(en){
-            let req = recv ep.req >>
-            let rs_pack = recv ep.reg_pack >>
-            if(req == 2'b01){      
-                cycle 1 >>
-                send mem_ep.read_req(rs_pack.rs) >>
-                let res = recv mem_ep.read_res >>
-                set lsu_out := res
-                
-            }
-            else if(req == 2'b10){
-                cycle 1 >>
-                send mem_ep.write_req(write_pack_t::{addr = rs_pack.rs; data = rs_pack.rt}) >>
-                let _ = recv mem_ep.write_res >>
-                set lsu_out := *lsu_out
-            }
-            >>
-            send ep.out(*lsu_out) >>
+            try req = recv ep.req{
+                let rs_pack = recv ep.reg_pack >>
+                if(req == 2'b01){      
+                    cycle 1 >>
+                    send mem_ep.read_req(rs_pack.rs) >>
+                    let res = recv mem_ep.read_res >>
+                    set lsu_out := res
+                    
+                }
+                else if(req == 2'b10){
+                    cycle 1 >>
+                    send mem_ep.write_req(write_pack_t::{addr = rs_pack.rs; data = rs_pack.rt}) >>
+                    let _ = recv mem_ep.write_res >>
+                    set lsu_out := *lsu_out
+                }
+                >>
+                send ep.out(*lsu_out)
+            } >>
             cycle 1
-        }
-        else{
-            cycle 1
-        }
     }
 }
