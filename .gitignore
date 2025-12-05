@@ -7,3 +7,5 @@ anvil.Flist
 **/obj_dir/
 **/logs/
 src/build/
+*.log
+*.dot
