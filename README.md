@@ -51,11 +51,13 @@ The test does the following:
 
 It prints the results to the console for both the common cells stream buffer and the Anvil stream buffer.
 
-### AXI Lite Mux
+### AXI Lite Mux /AXI Lite Demux Router
 
 The files are located in `axi/`
 - `axi_lite_mux.anvil` : Anvil implementation of AXI Lite Mux
 - `axi_lite_mux_top.anvil` : Top level Anvil file to instantiate and test the AXI Lite Mux
+- `axi-demux.anvil` : Anvil implementation of AXI Demux Router
+- `axi_router_top.anvil` : Top level Anvil file to instantiate and test the
 
 The axi files are in `axi/` directory. we provide scripts in `unit_test_helpers/run_axi_veri.sh` to run the AXI Lite Mux tests for SV baseline from pulp platforms IP. 
 
@@ -63,8 +65,14 @@ The axi files are in `axi/` directory. we provide scripts in `unit_test_helpers/
 The way to run the tests is 
 
 ```bash 
+cd src/
+python3 create_testbench.py <tb_name> <wrapper_name>
+cd ..
 cp unit_test_helpers/run_axi_veri.sh  ./src/axi/
 cd ./src/axi/
 bash run_axi_veri.sh
 ```
+testbench_name is `axi_lite_mux_top` and wrapper_name is `axi_lite_mux` for AXI Lite Mux tests.
+
+Similarly for AXI Demux tests tb_name is `axi_router_top` and wrapper_name is `axi_demux`
 
