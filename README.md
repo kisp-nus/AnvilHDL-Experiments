@@ -51,3 +51,20 @@ The test does the following:
 
 It prints the results to the console for both the common cells stream buffer and the Anvil stream buffer.
 
+### AXI Lite Mux
+
+The files are located in `axi/`
+- `axi_lite_mux.anvil` : Anvil implementation of AXI Lite Mux
+- `axi_lite_mux_top.anvil` : Top level Anvil file to instantiate and test the AXI Lite Mux
+
+The axi files are in `axi/` directory. we provide scripts in `unit_test_helpers/run_axi_veri.sh` to run the AXI Lite Mux tests for SV baseline from pulp platforms IP. 
+
+
+The way to run the tests is 
+
+```bash 
+cp unit_test_helpers/run_axi_veri.sh  ./src/axi/
+cd ./src/axi/
+bash run_axi_veri.sh
+```
+
