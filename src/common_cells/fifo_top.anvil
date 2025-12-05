@@ -67,8 +67,9 @@ func recv_if_not_empty2(){
 
 proc fifo_top(){
     chan ep_le -- ep_ri : fifo_ch<logic[32]>;
+    chan ep_le_an -- ep_ri_an : fifo_ch<logic[32]>;
     spawn fifo_extern(ep_le);
-    // spawn fifo<logic[32],8,3>(ep_le);
+    spawn fifo<logic[32],8,3>(ep_le_an);
     reg cyc : logic[32];
     reg test_end : logic[32];
     loop{
@@ -117,38 +118,38 @@ proc fifo_top(){
 
         dprint "================[Cycle %d]Anvil FIFO Operations Start Next Cycle===================" ((*cyc - *test_end)) >>
         cycle 1 >>
-        call send_if_not_full(32'd51) >>
-        call send_if_not_full(32'd52) >>
-        call send_if_not_full(32'd53) >>
-        call send_if_not_full(32'd54) >>
-        call send_if_not_full(32'd55) >>
-        call send_if_not_full(32'd56) >>
-        call send_if_not_full(32'd57) >>
-        call send_if_not_full(32'd58) >>
+        call send_if_not_full2(32'd51) >>
+        call send_if_not_full2(32'd52) >>
+        call send_if_not_full2(32'd53) >>
+        call send_if_not_full2(32'd54) >>
+        call send_if_not_full2(32'd55) >>
+        call send_if_not_full2(32'd56) >>
+        call send_if_not_full2(32'd57) >>
+        call send_if_not_full2(32'd58) >>
         dprint "==============[Cycle %d] Attempting to send more data to full FIFO next cycle==============" ((*cyc - *test_end)) >>
         cycle 1 >>
 
         // Overflow attempts
-        call send_if_not_full(32'd59) >>
-        call send_if_not_full(32'd60) >>
+        call send_if_not_full2(32'd59) >>
+        call send_if_not_full2(32'd60) >>
 
         dprint "==================[Cycle %d] Starting to receive data from FIFO next cycle =================" ((*cyc - *test_end)) >>
         cycle 1 >>
         // Try Popping all elements
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
 
         // Underflow attempts
         dprint "==================[Cycle %d] Attempting to receive from empty FIFO next cycle =================" ((*cyc - *test_end)) >>
         cycle 1 >>
-        call recv_if_not_empty() >>
-        call recv_if_not_empty() >>
+        call recv_if_not_empty2() >>
+        call recv_if_not_empty2() >>
 
         dprint "============================[Cycle %d] Anvil FIFO Operations End========================" ((*cyc - *test_end)) >>
         dfinish >>

@@ -14,6 +14,10 @@ else
     ANVIL_FLAGS = -O 3
 endif
 
+ifdef VERBOSE
+	ANVIL_FLAGS += -verbose
+endif
+
 $(MODULE_NAME).anvil.sv: $(MODULE_NAME).anvil
 	anvil $(ANVIL_FLAGS) $< > $@
 
