@@ -35,3 +35,19 @@ There are following test patterns implemented:
 4. Test for Underflow condition
 
 The test does this for both the common cells Spill Register and the Anvil Spill Register and prints the results to the console
+
+### Stream FIFO
+The files are located in `common_cells/`
+
+- `passthrough_stream_fifo.anvil` : Anvil implementation of Stream FIFO
+- `stream_fifo.anvil` : Anvil implementation of Stream FIFO
+- `stream_fifo_top.anvil` : Top level Anvil file to instantiate and test the Stream FIFO
+
+
+The test does the following:
+1. Pushes data into FIFO
+2. Trys to check FIFO stream read : same cycle read and write when full
+3. Pops data from FIFO
+
+It prints the results to the console for both the common cells stream buffer and the Anvil stream buffer.
+
