@@ -100,3 +100,31 @@ bash run_testbench.sh aes_cipher_core_tb
 The testbench tests the AES cipher core for encryption and decryption test for `AES-128 and AES-256` and prints the results to the console.
 
 Same results with cycle accurate designs can be replicated for SV baseline from OpenTitan IP.
+
+## Filament ALU and SA Experiments
+
+The files are located in `src/filament/` The file has two directory : one with src Anvil and src SV files. The sv files contains the generated SV code from Anvil and Filament backend wrapped around the testbenches.
+
+
+So src files are in `src/filament/src_files/` directory.
+- `Alu.anvil` : Anvil implementation of ALU
+- `Alu_tb.anvil` : Testbench for ALU
+- `SA.anvil` : Anvil implementation of Simple Accelerator
+- `SA_tb.anvil` : Testbench for Simple Accelerator
+
+
+The sv files are in `src/filament/sv_files/` directory.
+- `AluAnvil.sv` : Generated testbench SV code for ALU from Anvil
+- `SAanvil.sv` : Generated testbench SV code for Simple Accelerator from Anvil
+- `AluFil.sv` : Filament alu implementation wrapped around the same testbench as Anvil
+- `SAfil.sv` : Filament SA implementation wrapped around the same testbench as Anvil
+
+
+To run the tests , go to sv directory and run the following commands:
+
+```bash
+cd src/filament/sv_files/
+make run all
+```
+
+This runs the testbenches for both Anvil and Filament implementations and prints the results to the console.
