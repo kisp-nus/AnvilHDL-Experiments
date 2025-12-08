@@ -49,16 +49,10 @@ chan Alu_itfc<T : type> {
     right output : (T@#1) @#input_l+2-@#input_l+2
 }
 
-proc Alu<T : type> (endp : left Alu_itfc<T>) {
-    // chan mux_le -- mux_ri : Mux_itfc<T>;
+proc anvilALU<T : type> (endp : left Alu_itfc<T>) {
     chan add_le -- add_ri : Add_itfc<T>;
-    // chan reg0_le -- reg0_ri : Reg_itfc<T>;
-    // chan reg1_le -- reg1_ri : Reg_itfc<T>;
     chan sub_le -- sub_ri : SubtractDelayed_itfc<T>;
     spawn Add<T> (add_le);
-    // spawn Mux<T> (mux_le);
-    // spawn Reg<T> (reg0_le);
-    // spawn Reg<T> (reg1_le);
     spawn SubtractDelayed<T> (sub_le);
     reg s1 : T;
     reg s2 : T;
@@ -93,9 +87,9 @@ proc Alu<T : type> (endp : left Alu_itfc<T>) {
     }
 }
 
-proc pipelined_alu() {
+proc Alu() {
     chan alu_le -- alu_ri : Alu_itfc<logic[32]>;
-    spawn Alu<logic[32]> (alu_le);
+    spawn anvilALU<logic[32]> (alu_le);
 
     loop{
         send alu_ri.input_l (32'd1) >>

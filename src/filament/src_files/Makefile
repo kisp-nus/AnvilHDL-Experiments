@@ -8,12 +8,15 @@ all: obj_dir/V$(MODULE_NAME)
 
 .PHONY: run clean
 
+
+ANVIL_FLAGS = -O 3
 ifdef LTOFF
-    ANVIL_FLAGS = -disable-lt-checks -O 3
-else
-    ANVIL_FLAGS = -O 3
+    ANVIL_FLAGS += -disable-lt-checks
 endif
 
+ifdef WTC
+	ANVIL_FLAGS += -weak-typecasts
+endif
 $(MODULE_NAME).anvil.sv: $(MODULE_NAME).anvil
 	anvil $(ANVIL_FLAGS) $< > $@
 
