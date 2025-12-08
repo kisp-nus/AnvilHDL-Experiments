@@ -352,12 +352,13 @@ PRIM_FILES=(
     "$PRIM_RTL_DIR/prim_assert.sv"          # Must be first - defines assertion macros
     "$PRIM_RTL_DIR/prim_util_pkg.sv"        # Utility package
     "$PRIM_RTL_DIR/prim_pkg.sv"             # Main primitive package
+    "$PRIM_RTL_DIR/prim_cipher_pkg.sv"      # Cipher package (for PRINCE S-box)
+    "$PRIM_RTL_DIR/prim_trivium_pkg.sv"     # Trivium package
     "$PRIM_RTL_DIR/prim_flop_macros.sv"     # Flop macros
     "$PRIM_GENERIC_DIR/prim_flop.sv"        # Generic flop implementation
     "$PRIM_GENERIC_DIR/prim_buf.sv"         # Generic buffer implementation
     "$PRIM_RTL_DIR/prim_sec_anchor_buf.sv"  # Security anchor buffer
-    "$PRIM_RTL_DIR/prim_sparse_fsm_flop.sv" # Sparse FSM flop'
-    "$PRIM_RTL_DIR/prim_trivium_pkg.sv" # Trivium package
+    "$PRIM_RTL_DIR/prim_sparse_fsm_flop.sv" # Sparse FSM flop
 )
 
 # Start with a fresh SV_FILES array in proper order
