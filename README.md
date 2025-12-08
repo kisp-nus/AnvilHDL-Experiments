@@ -76,3 +76,27 @@ testbench_name is `axi_lite_mux_top` and wrapper_name is `axi_lite_mux` for AXI 
 
 Similarly for AXI Demux tests tb_name is `axi_router_top` and wrapper_name is `axi_demux`
 
+## AES Cipher Core
+
+The files are located in `src/aes/`
+- `aes_cipher_core.anvil` : Anvil implementation of AES Cipher Core
+- `aes_helper_pkg.sv` : SystemVerilog wrapper for AES Cipher Core
+
+The testbench can be created by running the following command from `src/` directory:
+
+```bash
+python3 create_testbench.py aes_cipher_core_tb aes_cipher_core --cleanup
+```
+
+This will create the testbench file `aes_cipher_core_tb.sv` in the `aes/hw/ip/rtl/` directory.
+
+One can copy `run_testbench.sh` from `unit_test_helpers/` to `aes/hw/ip/rtl/` directory to run the testbench.
+
+
+```
+bash run_testbench.sh aes_cipher_core_tb
+```
+
+The testbench tests the AES cipher core for encryption and decryption test for `AES-128 and AES-256` and prints the results to the console.
+
+Same results with cycle accurate designs can be replicated for SV baseline from OpenTitan IP.
