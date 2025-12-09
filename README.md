@@ -137,3 +137,9 @@ The files are located in `src/cva6/`
 - `anvil_tlb.anvil` : Anvil implementation of TLB for CVA6
 - `anvil_tlb.sv` : Anvil TLB wrapper for CVA6
 - `anvil_ptw.sv` : Anvil PTW wrapper for CVA
+
+The cva6 setup script `scripts/setup-cva6.sh` can be used to setup the CVA6 repo with all required dependencies and files. This script generates `scripts/env-cva6.sh` file which is used to setup environment variables for CVA6 simulations. To run the tests one can use the `scripts/run-cva6-tests.sh` script when run locally it run the CVA6 tests with default TLB and PTW. When run with `--anvil` flag it runs the CVA6 tests with Anvil TLB and PTW.
+
+
+The results of the tests are stored in `verif/sim/out_<date>/iss_regr.log` file inside the CVA6 repo. This log file contains the results of the regression tests between verilator and spike ISS simulators.
+
