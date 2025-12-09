@@ -1,5 +1,30 @@
 #!/bin/bash
 
+# Determine the workspace root by finding the Anvil-Experiments directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Find workspace root - look for common_cells directory as anchor
+find_workspace_root() {
+    local dir="$1"
+    while [ "$dir" != "/" ]; do
+        if [ -d "$dir/common_cells" ] && [ -d "$dir/axi" ]; then
+            echo "$dir"
+            return 0
+        fi
+        dir="$(dirname "$dir")"
+    done
+    return 1
+}
+
+WORKSPACE_ROOT=$(find_workspace_root "$SCRIPT_DIR")
+if [ -z "$WORKSPACE_ROOT" ]; then
+    echo "Error: Could not find workspace root (looking for common_cells and axi directories)"
+    exit 1
+fi
+
+# Define paths relative to workspace root
+COMMON_CELLS_DIR="$WORKSPACE_ROOT/common_cells"
+AXI_DIR="$WORKSPACE_ROOT/axi"
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <TESTBENCH_NAME> [TIMEOUT]"
@@ -14,60 +39,60 @@ TESTBENCH_PATH_FILE=$(realpath "$TESTBENCH_NAME.sv")
 echo "Testbench path file: $TESTBENCH_PATH_FILE"
 
 cat > demux.flist << EOF
-+incdir+/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/include
-+incdir+/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/include
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/cb_filter_pkg.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/cc_onehot.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/cdc_reset_ctrlr_pkg.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/cf_math_pkg.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/clk_int_div.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/credit_counter.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/delta_counter.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/ecc_pkg.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/edge_propagator_tx.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/exp_backoff.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/fifo_v3.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/gray_to_binary.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/isochronous_4phase_handshake.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/isochronous_spill_register.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/lfsr.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/lfsr_16bit.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/lfsr_8bit.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/lossy_valid_to_stream.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/mv_filter.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/onehot_to_bin.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/plru_tree.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/passthrough_stream_fifo.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/popcount.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/rr_arb_tree.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/rstgen_bypass.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/serial_deglitch.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/shift_reg.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/shift_reg_gated.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/spill_register.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/spill_register_flushable.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/stream_demux.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/stream_filter.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/stream_fork.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/stream_intf.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/stream_join_dynamic.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/stream_mux.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/stream_throttle.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/sub_per_hash.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/sync.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/sync_wedge.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/unread.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/read.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/addr_decode_dync.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/cdc_2phase.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/cdc_4phase.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/clk_int_div_static.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/addr_decode.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/addr_decode_napot.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/multiaddr_decode.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/.bender/git/checkouts/common_cells-3e2fcccecd7aee7b/src/lzc.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/src/axi_pkg.sv
-/home/adi4kisp/Desktop/Workspace/Anvil-Experiments/axi/src/axi_lite_demux.sv
++incdir+${COMMON_CELLS_DIR}/include
++incdir+${AXI_DIR}/include
+${COMMON_CELLS_DIR}/src/cb_filter_pkg.sv
+${COMMON_CELLS_DIR}/src/cc_onehot.sv
+${COMMON_CELLS_DIR}/src/cdc_reset_ctrlr_pkg.sv
+${COMMON_CELLS_DIR}/src/cf_math_pkg.sv
+${COMMON_CELLS_DIR}/src/clk_int_div.sv
+${COMMON_CELLS_DIR}/src/credit_counter.sv
+${COMMON_CELLS_DIR}/src/delta_counter.sv
+${COMMON_CELLS_DIR}/src/ecc_pkg.sv
+${COMMON_CELLS_DIR}/src/edge_propagator_tx.sv
+${COMMON_CELLS_DIR}/src/exp_backoff.sv
+${COMMON_CELLS_DIR}/src/fifo_v3.sv
+${COMMON_CELLS_DIR}/src/gray_to_binary.sv
+${COMMON_CELLS_DIR}/src/isochronous_4phase_handshake.sv
+${COMMON_CELLS_DIR}/src/isochronous_spill_register.sv
+${COMMON_CELLS_DIR}/src/lfsr.sv
+${COMMON_CELLS_DIR}/src/lfsr_16bit.sv
+${COMMON_CELLS_DIR}/src/lfsr_8bit.sv
+${COMMON_CELLS_DIR}/src/lossy_valid_to_stream.sv
+${COMMON_CELLS_DIR}/src/mv_filter.sv
+${COMMON_CELLS_DIR}/src/onehot_to_bin.sv
+${COMMON_CELLS_DIR}/src/plru_tree.sv
+${COMMON_CELLS_DIR}/src/passthrough_stream_fifo.sv
+${COMMON_CELLS_DIR}/src/popcount.sv
+${COMMON_CELLS_DIR}/src/rr_arb_tree.sv
+${COMMON_CELLS_DIR}/src/rstgen_bypass.sv
+${COMMON_CELLS_DIR}/src/serial_deglitch.sv
+${COMMON_CELLS_DIR}/src/shift_reg.sv
+${COMMON_CELLS_DIR}/src/shift_reg_gated.sv
+${COMMON_CELLS_DIR}/src/spill_register.sv
+${COMMON_CELLS_DIR}/src/spill_register_flushable.sv
+${COMMON_CELLS_DIR}/src/stream_demux.sv
+${COMMON_CELLS_DIR}/src/stream_filter.sv
+${COMMON_CELLS_DIR}/src/stream_fork.sv
+${COMMON_CELLS_DIR}/src/stream_intf.sv
+${COMMON_CELLS_DIR}/src/stream_join_dynamic.sv
+${COMMON_CELLS_DIR}/src/stream_mux.sv
+${COMMON_CELLS_DIR}/src/stream_throttle.sv
+${COMMON_CELLS_DIR}/src/sub_per_hash.sv
+${COMMON_CELLS_DIR}/src/sync.sv
+${COMMON_CELLS_DIR}/src/sync_wedge.sv
+${COMMON_CELLS_DIR}/src/unread.sv
+${COMMON_CELLS_DIR}/src/read.sv
+${COMMON_CELLS_DIR}/src/addr_decode_dync.sv
+${COMMON_CELLS_DIR}/src/cdc_2phase.sv
+${COMMON_CELLS_DIR}/src/cdc_4phase.sv
+${COMMON_CELLS_DIR}/src/clk_int_div_static.sv
+${COMMON_CELLS_DIR}/src/addr_decode.sv
+${COMMON_CELLS_DIR}/src/addr_decode_napot.sv
+${COMMON_CELLS_DIR}/src/multiaddr_decode.sv
+${COMMON_CELLS_DIR}/src/lzc.sv
+${AXI_DIR}/src/axi_pkg.sv
+${AXI_DIR}/src/axi_lite_demux.sv
 ${TESTBENCH_PATH_FILE}
 EOF
 

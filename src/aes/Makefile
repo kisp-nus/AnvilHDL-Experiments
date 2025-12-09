@@ -11,7 +11,7 @@ all: obj_dir/V$(MODULE_NAME)
 ifdef LTOFF
     ANVIL_FLAGS = -disable-lt-checks -O 3
 else
-    ANVIL_FLAGS = -verbose
+    ANVIL_FLAGS = -O 3
 endif
 
 $(MODULE_NAME).anvil.sv: $(MODULE_NAME).anvil
