@@ -118,7 +118,7 @@ def run_cva6_benchmarks():
     os.system(f"cat {CVA6_DIR}/verif/sim/out_{date}/iss_regr.log >> {OUT_DIR}/cva6_benchmarks.log")
     os.system(f"rm -rf {CVA6_DIR}/verif/sim/out_*")
     os.system(f"echo \"\\n\\n====Running CVA6 with Anvil PTW and TLB======== \\n\\n\\n \" >> {OUT_DIR}/cva6_benchmarks.log 2>&1")
-    print_log("Running CVA6 with Anvil PTW and TLB")
+    print_log("Running CVA6 with Anvil PTW and TLB\n")
     os.system(f"bash run-cva6-tests.sh --anvil > /dev/null 2>&1")
     os.system(f"cat {CVA6_DIR}/verif/sim/out_{date}/iss_regr.log >> {OUT_DIR}/cva6_benchmarks.log")
     date = os.popen("date +%Y-%m-%d").read().strip()

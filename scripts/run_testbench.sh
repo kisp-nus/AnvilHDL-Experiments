@@ -16,10 +16,10 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 
-log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_info() { echo -e "[INFO] $1"; }
+log_success() { echo -e "[SUCCESS] $1"; }
+log_warning() { echo -e "[WARNING] $1"; }
+log_error() { echo -e "[ERROR] $1"; }
 
 show_usage() {
     echo "Usage: $0 <testbench_name> [options]"
@@ -237,7 +237,7 @@ VERILATOR_WAIVERS=()
 parse_core_file() {
     local core_file="$RTL_DIR/../aes.core"
     if [[ -f "$core_file" ]]; then
-        log_info "Parsing aes.core file for dependencies..."
+        # log_info "Parsing aes.core file for dependencies..."
         
         # Define dependency order - packages first, then implementation files
         local ORDERED_AES_FILES=(
@@ -296,7 +296,7 @@ parse_core_file() {
             local full_path="$RTL_DIR/$filename"
             if [[ -f "$full_path" ]]; then
                 SV_FILES+=("$full_path")
-                log_info "Added from core (ordered): $filename"
+                # log_info "Added from core (ordered): $filename"
             else
                 log_warning "File from core not found: $filename"
             fi
@@ -330,7 +330,7 @@ parse_core_file() {
             for dep in "${AES_DEPS[@]}"; do
                 if [[ -f "$RTL_DIR/$dep" ]]; then
                     SV_FILES+=("$RTL_DIR/$dep")
-                    log_info "Added: $dep"
+                    # log_info "Added: $dep"
                 fi
             done
         fi
@@ -368,17 +368,17 @@ log_info "Adding essential primitive files..."
 for prim_file in "${PRIM_FILES[@]}"; do
     if [[ -f "$prim_file" ]]; then
         ORDERED_SV_FILES+=("$prim_file")
-        log_info "Added primitive: $(basename "$prim_file")"
+        # log_info "Added primitive: $(basename "$prim_file")"
     else
         log_warning "Primitive file not found: $prim_file"
     fi
 done
 
-log_info "Adding essential package files..."
+# log_info "Adding essential package files..."
 for pkg_file in "${PKG_FILES[@]}"; do
     if [[ -f "$pkg_file" ]]; then
         ORDERED_SV_FILES+=("$pkg_file")
-        log_info "Added package: $(basename "$pkg_file")"
+        # log_info "Added package: $(basename "$pkg_file")"
     else
         log_warning "Package file not found: $pkg_file"
     fi
@@ -525,7 +525,7 @@ if [[ "$ENABLE_COVERAGE" == true ]]; then
     VFLAGS="$VFLAGS --coverage"
 fi
 
-log_info "Verilator flags: $VFLAGS"
+# log_info "Verilator flags: $VFLAGS"
 
 if verilator $VFLAGS "${SV_FILES[@]}" sim_main.cpp; then
     log_success "Compilation successful!"
