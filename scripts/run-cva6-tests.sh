@@ -65,7 +65,7 @@ if [ "$USE_ANVIL" = true ]; then
     
 
     cp "$ANVIL_SRC/anvil_tlb.anvil.sv" "$MMU_DIR/anvil_tlb.sv"
-    cp "$ANVIL_SRC/cva6_default_tlb.sv" "$MMU_DIR/cva6_tlb.sv"
+    cp "$ANVIL_SRC/cva6_anvil_tlb.sv" "$MMU_DIR/cva6_tlb.sv"
     cp "$ANVIL_SRC/anvil_ptw.anvil.sv" "$MMU_DIR/anvil_ptw.sv"
     cp "$ANVIL_SRC/cva6_anvil_ptw.sv" "$MMU_DIR/cva6_ptw.sv"
     

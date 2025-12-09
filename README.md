@@ -1,145 +1,142 @@
-# Experiments for Anvil Evaluation
+# Anvil Evaluation Artifacts
 
+This repository contains the experimental artifacts for evaluating Anvil, organized into eight distinct experiments that demonstrate the functionality and correctness of designs written in Anvil compared to their SystemVerilog counterparts.
 
-## Common Cells
+## Artifacts Overview
 
+1. **FIFO Queue**
+2. **Spill Register**
+3. **Stream FIFO Buffer**
+4. **AXI Lite Mux Router**
+5. **AXI Demux Router**
+6. **AES Cipher Core**
+7. **Pipelined Designs**
+   - Pipeline ALU
+   - Pipelined Systolic Array
+8. **CVA6 MMU (TLB and PTW)**
 
-### FIFO : a First In First Out Buffer
+Each experiment includes test harnesses that verify functional correctness, cycle-accurate equivalence with baseline SystemVerilog implementations.
 
-The files are located in `common_cells/`
-- `fifo_wrapper.sv` : Baseline FIFO from common cells IP
-- `fifo.anvil` : Anvil implementation of FIFO
-- `fifo_top.anvil` : Top level Anvil file to instantiate and test both FIFOs
+## Quick Start
 
-The test does the following:
-
-1. Pushes data into FIFO
-2. Trys to Overflow the FIFO
-3. Pops data from FIFO
-4. Trys to Underflow the FIFO
-
-It does this for both the common cells FIFO and the Anvil FIFO and prints the results to the console.
-
-
-### Spill Register
-
-The files are located in `common_cells/`
-- `spill_reg.sv` : Baseline Spill Register from common cells IP
-- `spill_reg.anvil` : Anvil implementation of Spill Register
-- `spill_reg_top.anvil` : Top level Anvil file to instantiate and test both Spill Registers
-
-There are following test patterns implemented:
-1. Send data to Spill Register
-2. Receive data from Spill Register
-3. Test for Overflow condition
-4. Test for Underflow condition
-
-The test does this for both the common cells Spill Register and the Anvil Spill Register and prints the results to the console
-
-### Stream FIFO
-The files are located in `common_cells/`
-
-- `passthrough_stream_fifo.anvil` : Anvil implementation of Stream FIFO
-- `stream_fifo.anvil` : Anvil implementation of Stream FIFO
-- `stream_fifo_top.anvil` : Top level Anvil file to instantiate and test the Stream FIFO
-
-
-The test does the following:
-1. Pushes data into FIFO
-2. Trys to check FIFO stream read : same cycle read and write when full
-3. Pops data from FIFO
-
-It prints the results to the console for both the common cells stream buffer and the Anvil stream buffer.
-
-### AXI Lite Mux /AXI Lite Demux Router
-
-The files are located in `axi/`
-- `axi_lite_mux.anvil` : Anvil implementation of AXI Lite Mux
-- `axi_lite_mux_top.anvil` : Top level Anvil file to instantiate and test the AXI Lite Mux
-- `axi-demux.anvil` : Anvil implementation of AXI Demux Router
-- `axi_router_top.anvil` : Top level Anvil file to instantiate and test the
-
-The axi files are in `axi/` directory. we provide scripts in `unit_test_helpers/run_axi_veri.sh` to run the AXI Lite Mux tests for SV baseline from pulp platforms IP. 
-
-
-The way to run the tests is 
-
-```bash 
-cd src/
-python3 create_testbench.py <tb_name> <wrapper_name>
-cd ..
-cp unit_test_helpers/run_axi_veri.sh  ./src/axi/
-cd ./src/axi/
-bash run_axi_veri.sh
-```
-testbench_name is `axi_lite_mux_top` and wrapper_name is `axi_lite_mux` for AXI Lite Mux tests.
-
-Similarly for AXI Demux tests tb_name is `axi_router_top` and wrapper_name is `axi_demux`
-
-## AES Cipher Core
-
-The files are located in `src/aes/`
-- `aes_cipher_core.anvil` : Anvil implementation of AES Cipher Core
-- `aes_helper_pkg.sv` : SystemVerilog wrapper for AES Cipher Core
-
-The testbench can be created by running the following command from `src/` directory:
+The simplest way to reproduce all experiments is to use the provided push-button script:
 
 ```bash
-python3 create_testbench.py aes_cipher_core_tb aes_cipher_core --cleanup
+python3 run_artefact.py
 ```
 
-This will create the testbench file `aes_cipher_core_tb.sv` in the `aes/hw/ip/rtl/` directory.
+This script runs all experiments sequentially and saves results to the `out/` directory.
 
-One can copy `run_testbench.sh` from `unit_test_helpers/` to `aes/hw/ip/rtl/` directory to run the testbench.
+## Running with Docker (Recommended)
 
+Docker provides a pre-configured environment with all dependencies installed.
 
-```
-bash run_testbench.sh aes_cipher_core_tb
-```
+### Build the Docker Image
 
-The testbench tests the AES cipher core for encryption and decryption test for `AES-128 and AES-256` and prints the results to the console.
-
-Same results with cycle accurate designs can be replicated for SV baseline from OpenTitan IP.
-
-## Filament ALU and SA Experiments
-
-The files are located in `src/filament/` The file has two directory : one with src Anvil and src SV files. The sv files contains the generated SV code from Anvil and Filament backend wrapped around the testbenches.
-
-
-So src files are in `src/filament/src_files/` directory.
-- `Alu.anvil` : Anvil implementation of ALU
-- `Alu_tb.anvil` : Testbench for ALU
-- `SA.anvil` : Anvil implementation of Simple Accelerator
-- `SA_tb.anvil` : Testbench for Simple Accelerator
-
-
-The sv files are in `src/filament/sv_files/` directory.
-- `AluAnvil.sv` : Generated testbench SV code for ALU from Anvil
-- `SAanvil.sv` : Generated testbench SV code for Simple Accelerator from Anvil
-- `AluFil.sv` : Filament alu implementation wrapped around the same testbench as Anvil
-- `SAfil.sv` : Filament SA implementation wrapped around the same testbench as Anvil
-
-
-To run the tests , go to sv directory and run the following commands:
+From the root directory, run:
 
 ```bash
-cd src/filament/sv_files/
-make run all
+docker build -t anvil_experiments .
 ```
 
-This runs the testbenches for both Anvil and Filament implementations and prints the results to the console.
+### Run All Experiments
+
+Create an output directory and run the container:
+
+```bash
+mkdir -p out
+docker run -it -v $(pwd)/out:/workspace/Anvil-Experiments/out anvil_experiments
+```
+
+### Interactive Shell
+
+To explore the experiments interactively:
+
+```bash
+docker run -it -v $(pwd)/out:/workspace/Anvil-Experiments/out anvil_experiments /bin/bash
+```
+
+Once inside the container, you can run individual experiments or use the push-button script.
+
+## Local Installation
+
+If you prefer to run experiments without Docker, follow these steps:
+
+### Prerequisites
+
+1. **Install Anvil:**
+   ```bash
+   bash scripts/install_anvil.sh
+   ```
+
+2. **Install Verilator:**
+   ```bash
+   bash scripts/install_verilator.sh
+   ```
+
+3. **Initialize Submodules:**
+   ```bash
+   git submodule update --init --recursive
+   ```
+
+4. **Install Additional Dependencies:**
+   Follow the installation instructions in each submodule's directory as needed.
+
+### Run Experiments
+
+Execute the main script from the root directory:
+
+```bash
+python3 run_artefact.py
+```
+
+Results will be saved to the `out/` directory.
+
+## Individual Experiments
+
+Each experiment can be run independently. Detailed instructions are provided in the following directories:
+
+- **FIFO Queue, Spill Register, Stream FIFO Buffer:** [`src/common_cells/`](src/common_cells/)
+- **Pipelined Designs:** [`src/filament/`](src/filament/)
+- **AXI Lite Mux Router, AXI Demux Router:** [`src/axi/`](src/axi/)
+- **AES Cipher Core:** [`src/aes/`](src/aes/)
+- **CVA6 TLB and PTW:** [`src/cva6/`](src/cva6/)
+
+## Experiment Descriptions
+
+### 1. FIFO Queue
+Tests push and pop operations, including overflow and underflow conditions. Verifies cycle-accurate equivalence between Anvil and SystemVerilog implementations.
+
+### 2. Spill Register
+Validates spill and fill operations with cycle-accurate output comparison.
+
+### 3. Stream FIFO Buffer
+Tests concurrent push and pop operations, as well as individual operations, ensuring identical behavior between implementations.
+
+### 4. Pipelined Designs
+Evaluates pipelined ALU and systolic array designs, comparing Anvil implementations against Filament baseline designs.
+
+### 5. AXI Lite Mux Router
+Simulates eight slave nodes communicating with a single master node via the AXI Lite protocol. Cycle-accurate traces confirm equivalence with the SystemVerilog reference.
+
+### 6. AXI Demux Router
+Tests a single slave node selecting between eight master nodes. Includes cycle-accurate trace comparison with the reference design.
+
+### 7. AES Cipher Core
+Performs encryption and decryption using AES-128 and AES-256 keys. Validates that decrypted output matches the original plaintext and provides cycle-accurate trace comparison.
+
+### 8. CVA6 TLB and PTW
+Runs RISC-V compliance tests on the CVA6 core with MMU enabled, comparing results from baseline SystemVerilog TLB/PTW against Anvil implementations. Validates equivalence between Verilator and Spike simulations.
+
+## Expected Results
+
+All experiments produce cycle-accurate output that matches between Anvil and baseline implementations. Results are saved in the `out/` directory with detailed logs for each test.
 
 
-## CVA6 MMU
+Sample output files are included in the `sample_outputs/` directory for reference.
 
-The files are located in `src/cva6/`
-- `anvil_ptw.anvil` : Anvil implementation of Page Table Walker for CVA6
-- `anvil_tlb.anvil` : Anvil implementation of TLB for CVA6
-- `anvil_tlb.sv` : Anvil TLB wrapper for CVA6
-- `anvil_ptw.sv` : Anvil PTW wrapper for CVA
+### Summary of Validation
 
-The cva6 setup script `scripts/setup-cva6.sh` can be used to setup the CVA6 repo with all required dependencies and files. This script generates `scripts/env-cva6.sh` file which is used to setup environment variables for CVA6 simulations. To run the tests one can use the `scripts/run-cva6-tests.sh` script when run locally it run the CVA6 tests with default TLB and PTW. When run with `--anvil` flag it runs the CVA6 tests with Anvil TLB and PTW.
-
-
-The results of the tests are stored in `verif/sim/out_<date>/iss_regr.log` file inside the CVA6 repo. This log file contains the results of the regression tests between verilator and spike ISS simulators.
-
+- **Experiments 1-3, 5-7:** Cycle-accurate output prints match exactly between Anvil and SystemVerilog.
+- **Experiment 4:** Cycle-accurate output prints match exactly between Anvil and Filament.
+- **Experiment 8:** RISC-V compliance test results match between SystemVerilog and Anvil implementations when compared against Spike.

@@ -35,7 +35,7 @@ ANVIL_PTW_ANVIL="$ANVIL_SRC/anvil_ptw.anvil"
 # TLB files
 ORIGINAL_TLB="$CVA6_MMU_DIR/cva6_tlb.sv"
 BACKUP_TLB="$CVA6_MMU_DIR/cva6_tlb.sv.orig"
-ANVIL_TLB_WRAPPER="$ANVIL_SRC/cva6_default_tlb.sv"
+ANVIL_TLB_WRAPPER="$ANVIL_SRC/cva6_anvil_tlb.sv"
 ANVIL_TLB_SV="$ANVIL_SRC/anvil_tlb.anvil.sv"
 ANVIL_TLB_ANVIL="$ANVIL_SRC/anvil_tlb.anvil"
 

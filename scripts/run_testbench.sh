@@ -407,7 +407,7 @@ if [[ ${#ADDITIONAL_FILES[@]} -gt 0 ]]; then
     done
 fi
 
-SV_FILES+=("$(realpath $TESTBENCH_FILE)")  
+SV_FILES+=("$TESTBENCH_FILE")  
 log_info "Added: $(basename "$TESTBENCH_FILE")"
 
 log_success "Found ${#SV_FILES[@]} files to compile"
