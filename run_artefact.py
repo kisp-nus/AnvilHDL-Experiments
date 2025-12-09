@@ -26,6 +26,10 @@ CVA6_DIR = os.path.join(ROOT_DIR, "cva6_ariane")
 AES_SRC = os.path.join(ROOT_DIR, "opentitan/hw/ip/aes/rtl")
 AES_ANVIl = os.path.join(SRC_DIR, "aes")
 
+GREEN="\033[92m"
+Yellow="\033[93m"
+Blue="\033[94m"
+RED="\033[91m"
 
 if not os.path.exists(OUT_DIR):
     os.makedirs(OUT_DIR)
@@ -34,28 +38,29 @@ else :
 
 
 def print_log(msg):
-    print(f"[INFO] {msg}")
+    print(f"{GREEN}[INFO] {msg}")
+
 
 
 def fifo_benchmarks():
     print_log("Running FIFO Benchmarks...")
     os.chdir(COMMON_CELLS)
     os.system("make clean > /dev/null 2>&1")
-    os.system(f"make run MODULE_NAME=fifo_top > {OUT_DIR}/fifo_benchmarks.log 2>&1")
+    os.system(f"make run SILENT=1 MODULE_NAME=fifo_top > {OUT_DIR}/fifo_benchmarks.log 2>&1")
     print_log("FIFO Benchmarks Completed! Check logs in out/fifo_benchmarks.log\n")
 
 def spill_register_benchmarks():
     print_log("Running Spill Register Benchmarks...")
     os.chdir(COMMON_CELLS)
     os.system("make clean > /dev/null 2>&1")
-    os.system(f"make run MODULE_NAME=spill_reg_top > {OUT_DIR}/spill_register_benchmarks.log 2>&1")
+    os.system(f"make run SILENT=1 MODULE_NAME=spill_reg_top > {OUT_DIR}/spill_register_benchmarks.log 2>&1")
     print_log("Spill Register Benchmarks Completed! Check logs in out/spill_register_benchmarks.log\n")
 
 def stream_fifo_benchmarks():
     print_log("Running Stream FIFO Benchmarks...")
     os.chdir(COMMON_CELLS)
     os.system("make clean > /dev/null 2>&1")
-    os.system(f"make run MODULE_NAME=stream_fifo_top > {OUT_DIR}/stream_fifo_benchmarks.log 2>&1")
+    os.system(f"make run SILENT=1 MODULE_NAME=stream_fifo_top > {OUT_DIR}/stream_fifo_benchmarks.log 2>&1")
     print_log("Stream FIFO Benchmarks Completed! Check logs in out/stream_fifo_benchmarks.log\n")
 
 def run_axi_lite_default():
@@ -70,7 +75,7 @@ def axi_lite_mux_router_benchmarks():
     os.system("make clean > /dev/null 2>&1")
     os.system(f"echo \"====Running AXI Lite MUX ROUTER Testbench for Anvil======== \\n\\n\\n \" > {OUT_DIR}/axi_lite_mux_router_benchmarks.log 2>&1")
     print_log("Running AXI Lite MUX ROUTER Testbench for Anvil")
-    os.system(f"make run MODULE_NAME=axi_lite_mux_top >> {OUT_DIR}/axi_lite_mux_router_benchmarks.log 2>&1")
+    os.system(f"make run SILENT=1 MODULE_NAME=axi_lite_mux_top >> {OUT_DIR}/axi_lite_mux_router_benchmarks.log 2>&1")
     os.system(f"echo \"====Running AXI Lite MUX ROUTER Testbench for SV(Baseline)========\\n\\n\\n \" >> {OUT_DIR}/axi_lite_mux_router_benchmarks.log 2>&1")
     print_log("Running AXI Lite MUX ROUTER Testbench for SV(Baseline)")
     run_axi_lite_default()
@@ -88,7 +93,7 @@ def axi_lite_demux_router_benchmarks():
     os.system("make clean > /dev/null 2>&1")
     os.system(f"echo \"====Running AXI Lite DEMUX ROUTER Testbench for Anvil======== \\n\\n\\n \" > {OUT_DIR}/axi_lite_demux_router_benchmarks.log 2>&1")
     print_log("Running AXI Lite DEMUX ROUTER Testbench for Anvil")
-    os.system(f"make run MODULE_NAME=axi_router_top >> {OUT_DIR}/axi_lite_demux_router_benchmarks.log 2>&1")
+    os.system(f"make run SILENT=1 MODULE_NAME=axi_router_top >> {OUT_DIR}/axi_lite_demux_router_benchmarks.log 2>&1")
     os.system(f"echo \"====Running AXI Lite DEMUX ROUTER Testbench for SV(Baseline)========\\n\\n\\n \" >> {OUT_DIR}/axi_lite_demux_router_benchmarks.log 2>&1")
     print_log("Running AXI Lite DEMUX ROUTER Testbench for SV(Baseline)")
     run_axi_lite_default_demux()
@@ -99,7 +104,7 @@ def run_filament_benchmarks():
     print_log("Running Filament Benchmarks...")
     os.chdir(f"{FILAMENT}/sv_files")
     os.system("make clean > /dev/null 2>&1")
-    os.system(f"make run all > {OUT_DIR}/filament_benchmarks.log 2>&1")
+    os.system(f"make run SILENT=1 all > {OUT_DIR}/filament_benchmarks.log 2>&1")
     print_log("Filament Benchmarks Completed! Check logs in out/filament_benchmarks.log\n")
 
 def run_cva6_benchmarks():
@@ -112,8 +117,8 @@ def run_cva6_benchmarks():
     os.system(f"bash run-cva6-tests.sh > /dev/null 2>&1")
     os.system(f"cat {CVA6_DIR}/verif/sim/out_{date}/iss_regr.log >> {OUT_DIR}/cva6_benchmarks.log")
     os.system(f"rm -rf {CVA6_DIR}/verif/sim/out_*")
-    os.system(f"echo \"\\n\\n====Running CVA6 with Anvil======== \\n\\n\\n \" >> {OUT_DIR}/cva6_benchmarks.log 2>&1")
-    print_log("Running CVA6 with Anvil")
+    os.system(f"echo \"\\n\\n====Running CVA6 with Anvil PTW and TLB======== \\n\\n\\n \" >> {OUT_DIR}/cva6_benchmarks.log 2>&1")
+    print_log("Running CVA6 with Anvil PTW and TLB")
     os.system(f"bash run-cva6-tests.sh --anvil > /dev/null 2>&1")
     os.system(f"cat {CVA6_DIR}/verif/sim/out_{date}/iss_regr.log >> {OUT_DIR}/cva6_benchmarks.log")
     date = os.popen("date +%Y-%m-%d").read().strip()
@@ -131,22 +136,21 @@ def run_aes_benchmarks():
     os.system("make clean > /dev/null 2>&1")
     os.system(f"echo \"====Running AES Testbench for Anvil======== \\n\\n\\n \" > {OUT_DIR}/aes_benchmarks.log 2>&1")
     print_log("Running AES Testbench for Anvil")
-    os.system(f"make run MODULE_NAME=aes_cipher_core_tb >> {OUT_DIR}/aes_benchmarks.log 2>&1")    
+    os.system(f"make run SILENT=1 MODULE_NAME=aes_cipher_core_tb >> {OUT_DIR}/aes_benchmarks.log 2>&1")    
     os.system(f"echo \"====Running AES Testbench for SV(Baseline)========\\n\\n\\n \" >> {OUT_DIR}/aes_benchmarks.log 2>&1")
     print_log("Running AES Testbench for SV(Baseline)")
     run_aes_default()
     print_log("AES Benchmarks Completed! Check logs in out/aes_benchmarks.log\n")
 def get_input(msg):
-    # wait for enter or any key press
-    input("[Input] " + msg + " Press Enter to continue...")
+    input(f"{Yellow}[Input] " + msg + " Press Enter to continue...")
 
 def print_line():
-    print("=========================================================================================================\n")
+    print(f"{RED}======================================================================================================================={RED}\n")
 
     
 if __name__ == "__main__":
 
-    print_log("Interactive Script for Running Artefacts\n")
+    print_log(f"{Blue}Interactive Script for Running Artefacts{Blue}\n")
 
 #   1. FIFO
     print_line()
@@ -197,5 +201,5 @@ if __name__ == "__main__":
     run_cva6_benchmarks()
     print_line()
 
-    print_log("All Benchmarks Completed!")
+    print_log(f"{Blue}All Benchmarks Completed!")
 

@@ -11,7 +11,7 @@ all: $(TOPS:%=obj_dir/V%)
 # Build each top independently
 obj_dir/V%: %.sv %_driver.cpp
 	@echo "=== Building $* ==="
-	verilator --cc --exe --build $(VERILATOR_FLAGS) --top $* $^
+	verilator --cc --exe --build $(VERILATOR_FLAGS) --top $* $^ > /dev/null 2>/dev/null
 
 # Generate driver file
 %_driver.cpp: $(TEST_DRIVER)
