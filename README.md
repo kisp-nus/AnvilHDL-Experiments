@@ -114,7 +114,7 @@ Validates spill and fill operations with cycle-accurate output comparison.
 Tests concurrent push and pop operations, as well as individual operations, ensuring identical behavior between implementations.
 
 ### 4. Pipelined Designs
-Evaluates pipelined ALU and systolic array designs, comparing Anvil implementations against Filament baseline designs.
+Evaluates pipelined ALU and systolic array designs, comparing Anvil implementations against Filament baseline designs, on arithmetic operations and systolic array computations.
 
 ### 5. AXI Lite Mux Router
 Simulates eight slave nodes communicating with a single master node via the AXI Lite protocol. Cycle-accurate traces confirm equivalence with the SystemVerilog reference.

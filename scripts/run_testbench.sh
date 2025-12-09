@@ -342,9 +342,12 @@ parse_core_file
 
 # Add essential primitive files needed for AES (in dependency order)
 PKG_FILES=(
-    "$ENTROPY_SRC_RTL_DIR/entropy_src_pkg.sv"   # Entropy source package
-    "$CSRNG_RTL_DIR/csrng_pkg.sv"              # CSRNG package  
-    "$EDN_RTL_DIR/edn_pkg.sv"                  # EDN package
+    "$ENTROPY_SRC_RTL_DIR/entropy_src_reg_pkg.sv"  # Entropy source reg package (dependency)
+    "$ENTROPY_SRC_RTL_DIR/entropy_src_pkg.sv"      # Entropy source package
+    "$CSRNG_RTL_DIR/csrng_reg_pkg.sv"              # CSRNG reg package (dependency for csrng_pkg)
+    "$CSRNG_RTL_DIR/csrng_pkg.sv"                  # CSRNG package  
+    "$EDN_RTL_DIR/edn_reg_pkg.sv"                  # EDN reg package (dependency)
+    "$EDN_RTL_DIR/edn_pkg.sv"                      # EDN package
 )
 
 PRIM_FILES=(

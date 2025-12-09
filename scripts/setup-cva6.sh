@@ -430,7 +430,7 @@ main() {
     install_python_deps
     
 
-    # install_simulators
+    install_simulators
     
     
     install_test_suites
