@@ -9,3 +9,5 @@ anvil.Flist
 src/build/
 *.log
 *.dot
+tools/
+scripts/env-cva6.sh
