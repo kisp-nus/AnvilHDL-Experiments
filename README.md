@@ -1,6 +1,6 @@
-# Anvil Evaluation Artifacts
+# AnvilHDL Evaluation Artifacts
 
-This repository contains the experimental artifacts for evaluating Anvil, organized into eight distinct experiments that demonstrate the functionality and correctness of designs written in Anvil compared to their SystemVerilog counterparts.
+This repository contains the experimental artefacts for evaluating [Anvil](https://github.com/jasonyu1996/anvil), organised into eight distinct experiments that demonstrate the functionality and correctness of designs written in Anvil compared to their SystemVerilog counterparts.
 
 ## Artifacts Overview
 
