@@ -22,12 +22,14 @@ Each experiment includes test harnesses that verify functional correctness, cycl
 The simplest way to reproduce all experiments is to use the provided push-button script:
 
 ```bash
-python3 run_artefact.py
+bash run.sh <-r>
 ```
 
-This script runs all experiments sequentially and saves results to the `out/` directory.
+The optional `-r` flag forces a rebuild of the Docker image, otherwise if image does not exist, it will be built automatically.
 
-## Running with Docker (Recommended)
+This script runs all experiments sequentially and saves results to the `out/` directory, it actually runs the `run_artefact.py` script inside a Docker container.
+
+## Building and Running with Docker
 
 Docker provides a pre-configured environment with all dependencies installed.
 
@@ -65,9 +67,7 @@ If you prefer to run experiments without Docker, follow these steps:
 ### Prerequisites
 
 1. **Install Anvil:**
-   ```bash
-   bash scripts/install_anvil.sh
-   ```
+   Follow the instructions at [Anvil Installation](https://project-starch.github.io/Anvil-Docs/installation.html)
 
 2. **Install Verilator:**
    ```bash
@@ -133,10 +133,24 @@ Runs RISC-V compliance tests on the CVA6 core with MMU enabled, comparing result
 All experiments produce cycle-accurate output that matches between Anvil and baseline implementations. Results are saved in the `out/` directory with detailed logs for each test.
 
 
-Sample output files are included in the `sample_outputs/` directory for reference.
+Sample output files are included in the `sample_out/` directory for reference.
 
 ### Summary of Validation
 
 - **Experiments 1-3, 5-7:** Cycle-accurate output prints match exactly between Anvil and SystemVerilog.
 - **Experiment 4:** Cycle-accurate output prints match exactly between Anvil and Filament.
 - **Experiment 8:** RISC-V compliance test results match between SystemVerilog and Anvil implementations when compared against Spike.
+
+## Resource Estimates
+
+
+**Time Estimates:**
+
+1. Docker Container Build: ~40 minutes (one-time)
+2. Running All Experiments: ~10 minutes
+
+**Disk Space Estimates:** : Docker Image: ~23 GB
+
+**Expected Memory Usage During Simulation:**: <8 GB RAM
+
+
