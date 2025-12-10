@@ -2,6 +2,8 @@
 
 This repository contains the experimental artefacts for evaluating [Anvil](https://github.com/jasonyu1996/anvil), organised into eight distinct experiments that demonstrate the functionality and correctness of designs written in Anvil compared to their SystemVerilog counterparts.
 
+> **Note** : The minimum prerequisites for this artefact are a working [Docker](https://docs.docker.com/engine/install/) installation and access to a Unix shell (bash is preferred to avoid syntax issues).
+
 ## Artefacts Overview
 
 1. **FIFO Queue**
