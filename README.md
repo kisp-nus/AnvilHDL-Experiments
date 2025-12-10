@@ -1,8 +1,8 @@
-# AnvilHDL Evaluation Artifacts
+# AnvilHDL Evaluation Artefacts
 
 This repository contains the experimental artefacts for evaluating [Anvil](https://github.com/jasonyu1996/anvil), organised into eight distinct experiments that demonstrate the functionality and correctness of designs written in Anvil compared to their SystemVerilog counterparts.
 
-## Artifacts Overview
+## Artefacts Overview
 
 1. **FIFO Queue**
 2. **Spill Register**
@@ -145,11 +145,11 @@ Sample output files are included in the `sample_out/` directory for reference.
 
 **Time Estimates:**
 
-1. Docker Container Build: ~40 minutes (one-time)
+1. Docker Container Build: ~60 minutes (one-time)
 2. Running All Experiments: ~10 minutes
 
 **Disk Space Estimates:** : Docker Image: ~23 GB
 
-**Expected Memory Usage During Simulation:**: <8 GB RAM
+**Expected Memory Usage During Simulation:**: <12 GB RAM
 
 
