@@ -82,7 +82,7 @@ def axi_lite_mux_router_benchmarks():
     print_log("AXI Lite MUX ROUTER Benchmarks Completed! Check logs in out/axi_lite_mux_router_benchmarks.log\n")
 
 def run_axi_lite_default_demux():
-    os.system(f"python3 create_testbench.py axi_router_top axi_lite_demux > /dev/null 2>&1")
+    os.system(f"python3 create_testbench.py axi_router_top axi_demux > /dev/null 2>&1")
     os.system(f"cp {SCRIPTS_DIR}/run_axi_veri.sh {AXI_BASE}/")
     os.chdir(AXI_BASE)
     os.system(f"bash run_axi_veri.sh axi_router_top >> {OUT_DIR}/axi_lite_demux_router_benchmarks.log 2>&1")
