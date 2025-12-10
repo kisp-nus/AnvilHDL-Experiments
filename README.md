@@ -2,7 +2,7 @@
 
 This repository contains the experimental artefacts for evaluating [Anvil](https://github.com/jasonyu1996/anvil), organised into eight distinct experiments that demonstrate the functionality and correctness of designs written in Anvil compared to their SystemVerilog counterparts.
 
-> **Note** : The minimum prerequisites for this artefact are a working [Docker](https://docs.docker.com/engine/install/) installation and access to a Unix shell (bash is preferred to avoid syntax issues).
+> **Note** : The minimum prerequisites for this artefact are a working [Docker](https://docs.docker.com/engine/install/) or [Podman](https://podman.io/docs/installation) installation and access to a Unix shell (bash is preferred to avoid syntax issues).
 
 ## Artefacts Overview
 
@@ -27,15 +27,16 @@ The simplest way to reproduce all experiments is to use the provided push-button
 bash run.sh <-r>
 ```
 
-The optional `-r` flag forces a rebuild of the Docker image, otherwise if image does not exist, it will be built automatically.
+The optional `-r` flag forces a rebuild of the container image, otherwise if image does not exist, it will be built automatically.
 
-This script runs all experiments sequentially and saves results to the `out/` directory, it actually runs the `run_artefact.py` script inside a Docker container.
+This script runs all experiments sequentially and saves results to the `out/` directory, it actually runs the `run_artefact.py` script inside a container.
 
-## Building and Running with Docker
+## Building and Running with Docker/Podman
 
-Docker provides a pre-configured environment with all dependencies installed.
+The container image provides a pre-configured environment with all dependencies installed.
+Below we assume you are using Docker. Replace `docker` with `podman` in the command if you are using Podman.
 
-### Build the Docker Image
+### Build the Container Image
 
 From the root directory, run:
 
@@ -64,7 +65,7 @@ Once inside the container, you can run individual experiments or use the push-bu
 
 ## Local Installation
 
-If you prefer to run experiments without Docker, follow these steps:
+If you prefer to run experiments without containerization, follow these steps:
 
 ### Prerequisites
 
@@ -147,10 +148,10 @@ Sample output files are included in the `sample_out/` directory for reference.
 
 **Time Estimates:**
 
-1. Docker Container Build: ~60 minutes (one-time)
+1. Container Build: ~60 minutes (one-time)
 2. Running All Experiments: ~10 minutes
 
-**Disk Space Estimates:** : Docker Image: ~23 GB
+**Disk Space Estimates:** : Container Image: ~23 GB
 
 **Expected Memory Usage During Simulation:**: <12 GB RAM
 

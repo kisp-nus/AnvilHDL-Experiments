@@ -89,7 +89,7 @@ RUN pip3 install --no-cache-dir \
     pyvsc \
     tabulate \
     pandas \
-    regex 
+    regex
 
 
 ENV RISCV=/workspace/Anvil-Experiments/tools/riscv
@@ -132,12 +132,7 @@ RUN eval $(opam env) && anvil --help
 WORKDIR /workspace/Anvil-Experiments
 
 
-COPY --chown=anvil:anvil <<EOF /entrypoint.sh
-#!/bin/bash
-set -e
-sudo chown -R anvil:anvil /workspace/Anvil-Experiments/out 2>/dev/null || true
-exec "\$@"
-EOF
+COPY --chown=anvil:anvil container/entrypoint.sh /entrypoint.sh
 
 RUN sudo chmod +x /entrypoint.sh
 
@@ -145,3 +140,4 @@ VOLUME /workspace/Anvil-Experiments/out
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["python3", "run_artefact.py"]
+
