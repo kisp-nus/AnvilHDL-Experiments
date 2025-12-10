@@ -50,4 +50,4 @@ Test results are saved in the CVA6 repository at:
 verif/sim/out_<date>/iss_regr.log
 ```
 
-This log file contains regression test results comparing Verilator simulation outputs against the Spike ISS (Instruction Set Simulator). Both baseline and Anvil implementations should produce identical results, demonstrating functional equivalence.
+This log file contains regression test results comparing Verilator simulation outputs against the Spike ISS (Instruction Set Simulator). Both baseline and Anvil implementations should produce identical results, demonstrating functional equivalence with cycle-accurate behaviour.
