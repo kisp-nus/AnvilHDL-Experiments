@@ -139,8 +139,7 @@ Sample output files are included in the `sample_out/` directory for reference.
 
 - **Experiments 1-3, 5-7:** Cycle-accurate output prints match exactly between Anvil and SystemVerilog.
 - **Experiment 4:** Cycle-accurate output prints match exactly between Anvil and Filament.
-- **Experiment 8:** RISC-V compliance test results match between SystemVerilog and Anvil implementations when compared against Spike.
-
+- **Experiment 8:** RISC-V compliance test results match between SystemVerilog and Anvil implementations with equivalent cycle traces during regression tests between Spike and Verilator
 ## Resource Estimates
 
 
