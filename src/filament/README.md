@@ -6,7 +6,6 @@ This directory contains experiments comparing Anvil and Filament implementations
 Ensure the following tools are installed and available in your PATH:
 - Anvil
 - Verilator
-- Python 3
 
 ## Source Files
 
