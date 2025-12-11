@@ -19,6 +19,9 @@ This repository contains the experimental artefacts for evaluating [Anvil](https
 
 Each experiment includes test harnesses that verify functional correctness, cycle-accurate equivalence with baseline SystemVerilog implementations.
 
+
+> The synthesis reports for the designs evaluated in these experiments can be found in the [`synthesis_reports/`](synthesis_reports/) directory. 
+
 ## Quick Start
 
 The simplest way to reproduce all experiments is to use the provided push-button script:

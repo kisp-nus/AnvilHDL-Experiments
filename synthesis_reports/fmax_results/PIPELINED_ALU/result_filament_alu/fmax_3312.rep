@@ -4,7 +4,7 @@ Information: Updating design information... (UID-85)
 Report : design
 Design : main
 Version: Q-2019.12-SP5-1
-Date   : Tue Aug 19 23:25:01 2025
+Date   : Thu Aug 21 19:44:30 2025
 ****************************************
 
 Design allows ideal nets on clock nets.
@@ -75,14 +75,14 @@ Report : timing
         -transition_time
 Design : main
 Version: Q-2019.12-SP5-1
-Date   : Tue Aug 19 23:25:01 2025
+Date   : Thu Aug 21 19:44:30 2025
 ****************************************
 
 Operating Conditions: TT_0P80V_0P00V_0P00V_0P00V_25C   Library: GF22FDX_SC7P5T_116CPP_BASE_CSC28L_TT_0P80V_0P00V_0P00V_0P00V_25C
 Wire Load Model Mode: top
 
-  Startpoint: inB[17] (input port clocked by clk)
-  Endpoint: inst1/out_reg[24]
+  Startpoint: inB[26] (input port clocked by clk)
+  Endpoint: inst1/out_reg[31]
             (rising edge-triggered flip-flop clocked by clk)
   Path Group: clk
   Path Type: max
@@ -100,61 +100,59 @@ Attributes:
   clock clk (rise edge)                                             0.00       0.00
   clock network delay (ideal)                                       0.00       0.00
   input external delay                                             50.00      50.00 f
-  inB[17] (in)                                            0.00      0.00      50.00 f
-  inB[17] (net)                                 6                   0.00      50.00 f
-  inst0/right[17] (Add_IN_WIDTH32_OUT_WIDTH32)                      0.00      50.00 f
-  inst0/right[17] (net)                                             0.00      50.00 f
-  inst0/add_130/B[17] (Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0)     0.00     50.00 f
-  inst0/add_130/B[17] (net)                                         0.00      50.00 f
-  inst0/add_130/U119/Z (SC7P5T_NR2X2_CSC28L)              8.92     10.66      60.66 r
-  inst0/add_130/n21 (net)                       2                   0.00      60.66 r
-  inst0/add_130/U214/Z (SC7P5T_NR2X1_MR_CSC28L)           8.50     12.68      73.34 f
-  inst0/add_130/n237 (net)                      1                   0.00      73.34 f
-  inst0/add_130/U123/Z (SC7P5T_NR2X2_MR_CSC28L)          12.19     17.72      91.06 r
-  inst0/add_130/n244 (net)                      2                   0.00      91.06 r
-  inst0/add_130/U25/Z (SC7P5T_OAI21X2_CSC28L)             9.70     17.55     108.61 f
-  inst0/add_130/n223 (net)                      2                   0.00     108.61 f
-  inst0/add_130/U24/Z (SC7P5T_ND2IAX1_L_CSC28L)           7.70     12.49     121.09 r
-  inst0/add_130/n222 (net)                      1                   0.00     121.09 r
-  inst0/add_130/U263/Z (SC7P5T_INVX1_CSC28L)              8.48     11.96     133.05 f
-  inst0/add_130/n105 (net)                      2                   0.00     133.05 f
-  inst0/add_130/U14/Z (SC7P5T_NR2X2_CSC28L)               6.65     11.06     144.11 r
-  inst0/add_130/n49 (net)                       1                   0.00     144.11 r
-  inst0/add_130/U264/Z (SC7P5T_INVX1_CSC28L)              4.85      8.38     152.49 f
-  inst0/add_130/n50 (net)                       1                   0.00     152.49 f
-  inst0/add_130/U156/Z (SC7P5T_OR2X2_CSC28L)              7.41     28.70     181.18 f
-  inst0/add_130/n17 (net)                       1                   0.00     181.18 f
-  inst0/add_130/U149/Z (SC7P5T_ND2IAX4_A_CSC28L)          9.18     23.61     204.79 f
-  inst0/add_130/n210 (net)                      2                   0.00     204.79 f
-  inst0/add_130/U54/Z (SC7P5T_CKINVX4_CSC28L)             8.91     12.99     217.78 r
-  inst0/add_130/n187 (net)                      4                   0.00     217.78 r
-  inst0/add_130/U150/Z (SC7P5T_OAI31X3_CSC28L)           12.66     15.35     233.13 f
-  inst0/add_130/n185 (net)                      1                   0.00     233.13 f
-  inst0/add_130/U342/Z (SC7P5T_XNR2X2_CSC28L)             6.64     38.28     271.41 r
-  inst0/add_130/SUM[24] (net)                   1                   0.00     271.41 r
-  inst0/add_130/SUM[24] (Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0)     0.00   271.41 r
-  inst0/out[24] (net)                                               0.00     271.41 r
-  inst0/out[24] (Add_IN_WIDTH32_OUT_WIDTH32)                        0.00     271.41 r
-  inst0_out[24] (net)                                               0.00     271.41 r
-  inst1/in[24] (Register_WIDTH32_3)                                 0.00     271.41 r
-  inst1/in[24] (net)                                                0.00     271.41 r
-  inst1/U27/Z (SC7P5T_INVX1_CSC28L)                       4.68      8.20     279.61 f
-  inst1/n60 (net)                               1                   0.00     279.61 f
-  inst1/U26/Z (SC7P5T_AO22IA1A2X1_CSC28L)                16.51     14.47     294.08 r
-  inst1/n27 (net)                               1                   0.00     294.08 r
-  inst1/out_reg[24]/D (SC7P5T_DFFQX2_CSC28L)             16.51      0.00     294.08 r
-  data arrival time                                                          294.08
+  inB[26] (in)                                            0.00      0.00      50.00 f
+  inB[26] (net)                                 6                   0.00      50.00 f
+  inst0/right[26] (Add_IN_WIDTH32_OUT_WIDTH32)                      0.00      50.00 f
+  inst0/right[26] (net)                                             0.00      50.00 f
+  inst0/add_130/B[26] (Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0)     0.00     50.00 f
+  inst0/add_130/B[26] (net)                                         0.00      50.00 f
+  inst0/add_130/U334/Z (SC7P5T_CKOR2X6_CSC28L)            6.03     20.94      70.94 f
+  inst0/add_130/n165 (net)                      2                   0.00      70.94 f
+  inst0/add_130/U188/Z (SC7P5T_ND3X2_CSC28L)              8.98     12.54      83.49 r
+  inst0/add_130/n160 (net)                      2                   0.00      83.49 r
+  inst0/add_130/U151/Z (SC7P5T_NR2X1_CSC28L)             11.00     14.90      98.39 f
+  inst0/add_130/n158 (net)                      2                   0.00      98.39 f
+  inst0/add_130/U212/Z (SC7P5T_AOI211X2_CSC28L)          16.48     20.62     119.01 r
+  inst0/add_130/n153 (net)                      1                   0.00     119.01 r
+  inst0/add_130/U211/Z (SC7P5T_OA22IA1A2X3_CSC28L)       12.55     33.81     152.82 r
+  inst0/add_130/n68 (net)                       2                   0.00     152.82 r
+  inst0/add_130/U149/Z (SC7P5T_AO22IA1A2X2_CSC28L)       14.97     17.94     170.76 f
+  inst0/add_130/n141 (net)                      2                   0.00     170.76 f
+  inst0/add_130/U224/Z (SC7P5T_ND2X1_CSC28L)              7.96     14.70     185.46 r
+  inst0/add_130/n139 (net)                      1                   0.00     185.46 r
+  inst0/add_130/U247/Z (SC7P5T_ND2X1_MR_CSC28L)          14.35     16.98     202.44 f
+  inst0/add_130/n116 (net)                      1                   0.00     202.44 f
+  inst0/add_130/U150/Z (SC7P5T_NR3X2_CSC28L)             14.35     22.00     224.44 r
+  inst0/add_130/n115 (net)                      2                   0.00     224.44 r
+  inst0/add_130/U51/Z (SC7P5T_CKINVX1_CSC28L)             9.40     15.48     239.91 f
+  inst0/add_130/n48 (net)                       1                   0.00     239.91 f
+  inst0/add_130/U204/Z (SC7P5T_ND2X2_CSC28L)              7.34     11.11     251.02 r
+  inst0/add_130/n51 (net)                       1                   0.00     251.02 r
+  inst0/add_130/U205/Z (SC7P5T_ND2X2_CSC28L)              8.17     12.18     263.20 f
+  inst0/add_130/SUM[31] (net)                   1                   0.00     263.20 f
+  inst0/add_130/SUM[31] (Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0)     0.00   263.20 f
+  inst0/out[31] (net)                                               0.00     263.20 f
+  inst0/out[31] (Add_IN_WIDTH32_OUT_WIDTH32)                        0.00     263.20 f
+  inst0_out[31] (net)                                               0.00     263.20 f
+  inst1/in[31] (Register_WIDTH32_3)                                 0.00     263.20 f
+  inst1/in[31] (net)                                                0.00     263.20 f
+  inst1/U36/Z (SC7P5T_INVX2_CSC28L)                       5.23      9.85     273.05 r
+  inst1/n78 (net)                               1                   0.00     273.05 r
+  inst1/U68/Z (SC7P5T_AO22IA1A2X2_CSC28L)                16.01     10.03     283.08 f
+  inst1/n34 (net)                               1                   0.00     283.08 f
+  inst1/out_reg[31]/D (SC7P5T_DFFX1_CSC28L)              16.01      0.00     283.08 f
+  data arrival time                                                          283.08
 
-  clock clk (rise edge)                                           326.00     326.00
-  clock network delay (ideal)                                       0.00     326.00
-  inst1/out_reg[24]/CLK (SC7P5T_DFFQX2_CSC28L)                      0.00     326.00 r
-  library setup time                                              -31.90     294.10
-  data required time                                                         294.10
+  clock clk (rise edge)                                           301.00     301.00
+  clock network delay (ideal)                                       0.00     301.00
+  inst1/out_reg[31]/CLK (SC7P5T_DFFX1_CSC28L)                       0.00     301.00 r
+  library setup time                                              -17.86     283.14
+  data required time                                                         283.14
   ---------------------------------------------------------------------------------------------------------
-  data required time                                                         294.10
-  data arrival time                                                         -294.08
+  data required time                                                         283.14
+  data arrival time                                                         -283.08
   ---------------------------------------------------------------------------------------------------------
-  slack (MET)                                                                  0.02
+  slack (MET)                                                                  0.06
 
 
 1
@@ -163,7 +161,7 @@ Attributes:
 Report : area
 Design : main
 Version: Q-2019.12-SP5-1
-Date   : Tue Aug 19 23:25:01 2025
+Date   : Thu Aug 21 19:44:30 2025
 ****************************************
 
 Library(s) Used:
@@ -171,21 +169,21 @@ Library(s) Used:
     GF22FDX_SC7P5T_116CPP_BASE_CSC28L_TT_0P80V_0P00V_0P00V_0P00V_25C (File: /opt/pdks/FOUNDATION_IP/STDLIB/7P5T/BASE/LVT/FE/GF22FDX_SC7P5T_116CPP_BASE_CSC28L_FE_RELV02R00/GF22FDX_SC7P5T_116CPP_BASE_CSC28L_FDK_RELV02R00/model/timing/db/GF22FDX_SC7P5T_116CPP_BASE_CSC28L_TT_0P80V_0P00V_0P00V_0P00V_25C.db)
 
 Number of ports:                         1002
-Number of nets:                          2128
-Number of cells:                         1188
-Number of combinational cells:           1030
+Number of nets:                          2213
+Number of cells:                         1272
+Number of combinational cells:           1114
 Number of sequential cells:               140
 Number of macros/black boxes:               0
-Number of buf/inv:                        243
+Number of buf/inv:                        261
 Number of references:                       8
 
-Combinational area:                426.439202
-Buf/Inv area:                       46.840800
-Noncombinational area:             194.879994
+Combinational area:                502.512000
+Buf/Inv area:                       66.607200
+Noncombinational area:             199.403996
 Macro/Black Box area:                0.000000
 Net Interconnect area:      undefined  (No wire load specified)
 
-Total cell area:                   621.319196
+Total cell area:                   701.915996
 Total area:                 undefined
 
 Hierarchical area distribution
@@ -196,27 +194,27 @@ Hierarchical area distribution
 Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
                                   Total      Total    national  national   boxes   Design
 --------------------------------  ---------  -------  --------  ---------  ------  ----------------------------------------
-main                               621.3192    100.0   11.9712     0.0000  0.0000  main
-go0                                 12.0408      1.9    0.3480     0.0000  0.0000  fsm_3_1
+main                               701.9160    100.0   11.9712     0.0000  0.0000  main
+go0                                 12.0408      1.7    0.3480     0.0000  0.0000  fsm_3_1
 go0/r                                3.8976      0.6    1.1136     2.7840  0.0000  std_reg_WIDTH1_5
 go0/r0                               3.8976      0.6    1.1136     2.7840  0.0000  std_reg_WIDTH1_4
 go0/r1                               3.8976      0.6    1.1136     2.7840  0.0000  std_reg_WIDTH1_3
-inst0                              142.8192     23.0    0.1392     0.0000  0.0000  Add_IN_WIDTH32_OUT_WIDTH32
-inst0/add_130                      142.6800     23.0  142.6800     0.0000  0.0000  Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0
-inst1                               68.2776     11.0   23.7336    44.5440  0.0000  Register_WIDTH32_3
-inst2                              303.5952     48.9   11.9712     0.0000  0.0000  comp3
-inst2/ev00                          12.0408      1.9    0.3480     0.0000  0.0000  fsm_3_0
+inst0                              167.8752     23.9    0.1392     0.0000  0.0000  Add_IN_WIDTH32_OUT_WIDTH32
+inst0/add_130                      167.7360     23.9  167.7360     0.0000  0.0000  Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0
+inst1                               71.5488     10.2   24.8472    46.7016  0.0000  Register_WIDTH32_3
+inst2                              355.7256     50.7   11.9712     0.0000  0.0000  comp3
+inst2/ev00                          12.1104      1.7    0.4176     0.0000  0.0000  fsm_3_0
 inst2/ev00/r                         3.8976      0.6    1.1136     2.7840  0.0000  std_reg_WIDTH1_2
 inst2/ev00/r0                        3.8976      0.6    1.1136     2.7840  0.0000  std_reg_WIDTH1_1
 inst2/ev00/r1                        3.8976      0.6    1.1136     2.7840  0.0000  std_reg_WIDTH1_0
-inst2/inst0                        148.3872     23.9    0.1392     0.0000  0.0000  Sub_IN_WIDTH32_OUT_WIDTH32
-inst2/inst0/sub_141                148.2480     23.9  148.2480     0.0000  0.0000  Sub_IN_WIDTH32_OUT_WIDTH32_DW01_sub_J1_0
-inst2/inst1                         67.3728     10.8   22.8288    44.5440  0.0000  Register_WIDTH32_1
-inst2/inst2                         63.8232     10.3   19.2792    44.5440  0.0000  Register_WIDTH32_0
-inst3                               63.8232     10.3   19.2792    44.5440  0.0000  Register_WIDTH32_2
-inst4                               18.7920      3.0   18.7920     0.0000  0.0000  Mux_WIDTH32
+inst2/inst0                        193.6272     27.6    0.1392     0.0000  0.0000  Sub_IN_WIDTH32_OUT_WIDTH32
+inst2/inst0/sub_141                193.4880     27.6  193.4880     0.0000  0.0000  Sub_IN_WIDTH32_OUT_WIDTH32_DW01_sub_J1_0
+inst2/inst1                         74.1936     10.6   27.2832    46.9104  0.0000  Register_WIDTH32_1
+inst2/inst2                         63.8232      9.1   19.2792    44.5440  0.0000  Register_WIDTH32_0
+inst3                               63.8232      9.1   19.2792    44.5440  0.0000  Register_WIDTH32_2
+inst4                               18.9312      2.7   18.9312     0.0000  0.0000  Mux_WIDTH32
 --------------------------------  ---------  -------  --------  ---------  ------  ----------------------------------------
-Total                                                 426.4392   194.8800  0.0000
+Total                                                 502.5120   199.4040  0.0000
 
 1
 Loading db file '/opt/pdks/FOUNDATION_IP/STDLIB/7P5T/BASE/LVT/FE/GF22FDX_SC7P5T_116CPP_BASE_CSC28L_FE_RELV02R00/GF22FDX_SC7P5T_116CPP_BASE_CSC28L_FDK_RELV02R00/model/timing/db/GF22FDX_SC7P5T_116CPP_BASE_CSC28L_TT_0P80V_0P00V_0P00V_0P00V_25C.db'
@@ -230,7 +228,7 @@ Report : power
         -analysis_effort low
 Design : main
 Version: Q-2019.12-SP5-1
-Date   : Tue Aug 19 23:25:03 2025
+Date   : Thu Aug 21 19:44:33 2025
 ****************************************
 
 
@@ -256,32 +254,32 @@ Power-specific unit information :
                                        Switch   Int      Leak     Total
 Hierarchy                              Power    Power    Power    Power    %
 --------------------------------------------------------------------------------
-main                                      0.150    1.166    0.264    1.316 100.0
-  inst4 (Mux_WIDTH32)                  4.38e-03 6.03e-03 5.97e-03 1.04e-02   0.8
-  inst3 (Register_WIDTH32_2)           6.82e-03    0.221 2.37e-02    0.228  17.3
-  inst2 (comp3)                        7.35e-02    0.582    0.132    0.656  49.8
-    inst2 (Register_WIDTH32_0)         7.09e-03    0.221 2.37e-02    0.229  17.4
-    inst1 (Register_WIDTH32_1)         1.06e-02    0.225 2.52e-02    0.236  17.9
-    inst0 (Sub_IN_WIDTH32_OUT_WIDTH32) 5.22e-02 8.82e-02 7.10e-02    0.140  10.7
-      sub_141 (Sub_IN_WIDTH32_OUT_WIDTH32_DW01_sub_J1_0) 5.22e-02 8.82e-02 7.10e-02    0.140  10.7
-    ev00 (fsm_3_0)                     9.04e-04 4.08e-02 4.89e-03 4.18e-02   3.2
-      r1 (std_reg_WIDTH1_0)            2.10e-04 1.35e-02 1.58e-03 1.37e-02   1.0
-      r0 (std_reg_WIDTH1_1)            3.01e-04 1.36e-02 1.58e-03 1.39e-02   1.1
-      r (std_reg_WIDTH1_2)             3.08e-04 1.36e-02 1.58e-03 1.39e-02   1.1
-  inst1 (Register_WIDTH32_3)           1.12e-02    0.226 2.57e-02    0.237  18.0
-  inst0 (Add_IN_WIDTH32_OUT_WIDTH32)   5.14e-02 8.29e-02 6.43e-02    0.134  10.2
-    add_130 (Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0) 5.14e-02 8.29e-02 6.43e-02    0.134  10.2
-  go0 (fsm_3_1)                        9.64e-04 4.09e-02 4.89e-03 4.18e-02   3.2
-    r1 (std_reg_WIDTH1_3)              2.10e-04 1.35e-02 1.58e-03 1.37e-02   1.0
-    r0 (std_reg_WIDTH1_4)              3.01e-04 1.36e-02 1.58e-03 1.39e-02   1.1
-    r (std_reg_WIDTH1_5)               3.08e-04 1.36e-02 1.58e-03 1.39e-02   1.1
+main                                      0.194    1.309    0.310    1.503 100.0
+  inst4 (Mux_WIDTH32)                  4.76e-03 6.47e-03 6.03e-03 1.12e-02   0.7
+  inst3 (Register_WIDTH32_2)           7.25e-03    0.240 2.37e-02    0.247  16.4
+  inst2 (comp3)                           0.101    0.657    0.163    0.757  50.4
+    inst2 (Register_WIDTH32_0)         7.54e-03    0.240 2.37e-02    0.247  16.4
+    inst1 (Register_WIDTH32_1)         1.36e-02    0.254 2.84e-02    0.268  17.8
+    inst0 (Sub_IN_WIDTH32_OUT_WIDTH32) 7.56e-02    0.112 9.91e-02    0.187  12.5
+      sub_141 (Sub_IN_WIDTH32_OUT_WIDTH32_DW01_sub_J1_0) 7.56e-02    0.112 9.91e-02    0.187  12.5
+    ev00 (fsm_3_0)                     9.74e-04 4.41e-02 4.76e-03 4.51e-02   3.0
+      r1 (std_reg_WIDTH1_0)            2.25e-04 1.46e-02 1.58e-03 1.49e-02   1.0
+      r0 (std_reg_WIDTH1_1)            2.87e-04 1.46e-02 1.49e-03 1.49e-02   1.0
+      r (std_reg_WIDTH1_2)             2.80e-04 1.46e-02 1.49e-03 1.49e-02   1.0
+  inst1 (Register_WIDTH32_3)           1.19e-02    0.253 2.72e-02    0.265  17.7
+  inst0 (Add_IN_WIDTH32_OUT_WIDTH32)   6.69e-02    0.102 7.81e-02    0.169  11.2
+    add_130 (Add_IN_WIDTH32_OUT_WIDTH32_DW01_add_J2_0) 6.69e-02    0.102 7.81e-02    0.169  11.2
+  go0 (fsm_3_1)                        9.35e-04 4.40e-02 4.71e-03 4.50e-02   3.0
+    r1 (std_reg_WIDTH1_3)              2.25e-04 1.46e-02 1.58e-03 1.49e-02   1.0
+    r0 (std_reg_WIDTH1_4)              2.87e-04 1.46e-02 1.49e-03 1.49e-02   1.0
+    r (std_reg_WIDTH1_5)               2.80e-04 1.46e-02 1.49e-03 1.49e-02   1.0
 1
  
 ****************************************
 Report : saif
 Design : main
 Version: Q-2019.12-SP5-1
-Date   : Tue Aug 19 23:25:03 2025
+Date   : Thu Aug 21 19:44:33 2025
 ****************************************
 
   
