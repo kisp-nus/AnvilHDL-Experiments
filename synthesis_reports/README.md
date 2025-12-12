@@ -1,6 +1,6 @@
 # Synthesis Reports
 
-This directory contains synthesis reports for hardware designs targeting commercial 22nm ASIC technology. The reports compare two design implementations: **Anvil** and **Baseline** (filament for Pipelined Designs(SA and ALU), SV otherwise), across multiple hardware modules.
+This directory contains synthesis reports for hardware designs targeting commercial 22nm ASIC technology. The reports compare two design implementations: **Anvil** and **Baseline** (filament for Pipelined Designs(SA and ALU), SystemVerilog otherwise), across multiple hardware modules.
 
 ## Overview
 
