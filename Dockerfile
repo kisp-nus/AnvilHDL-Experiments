@@ -96,6 +96,10 @@ ENV RISCV=/workspace/Anvil-Experiments/tools/riscv
 ENV PATH="${RISCV}/bin:${PATH}"
 ENV NUM_JOBS=4
 
+RUN sed -i -e 's+BINUTILS_REPO=.*$+BINUTILS_REPO=https://github.com/bminor/binutils-gdb+' \
+    -e 's+NEWLIB_REPO=.*$+NEWLIB_REPO=https://github.com/bminor/newlib+' \
+    cva6_ariane/util/toolchain-builder/config/global.sh
+
 RUN chmod +x scripts/* && \
     ./scripts/setup-cva6.sh --install-deps 2>&1 | tee /tmp/setup-cva6.log || \
     (echo "CVA6 setup had issues, check /tmp/setup-cva6.log" && cat /tmp/setup-cva6.log && exit 1)
