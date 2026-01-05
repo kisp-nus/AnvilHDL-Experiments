@@ -38,5 +38,6 @@ if [[ "$(docker images -q anvil-experiments 2> /dev/null)" == "" ]] || [[ "$rebu
 else
   echo "Docker image anvil-experiments already exists... skipping build"
 fi
+
 mkdir -p out
 docker run -it -v $(pwd)/out:/workspace/Anvil-Experiments/out anvil-experiments
