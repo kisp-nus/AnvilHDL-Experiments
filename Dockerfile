@@ -94,9 +94,8 @@ RUN sed -i -e 's+BINUTILS_REPO=.*$+BINUTILS_REPO=https://github.com/bminor/binut
     -e 's+NEWLIB_REPO=.*$+NEWLIB_REPO=https://github.com/bminor/newlib+' \
     cva6_ariane/util/toolchain-builder/config/global.sh
 
-RUN chmod +x scripts/* && \
-    ./scripts/setup-cva6.sh --install-deps 2>&1 | tee /tmp/setup-cva6.log || \
-    echo "CVA6 setup had issues, check /tmp/setup-cva6.log" && cat /tmp/setup-cva6.log && exit 1
+RUN set -e && chmod +x scripts/* && \
+    ./scripts/setup-cva6.sh --install-deps 2>&1
 
 ENV DV_SIMULATORS=veri-testharness,spike
 ENV CVA6_DIR=/workspace/Anvil-Experiments/cva6_ariane
