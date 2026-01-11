@@ -70,15 +70,14 @@ COPY .gitmodules .
 
 
 RUN git init && \
-    git submodule add https://github.com/pulp-platform/axi.git axi && \
-    git submodule add https://github.com/lowRISC/opentitan.git opentitan && \
-    git submodule add https://github.com/openhwgroup/cva6.git cva6_ariane && \
-    git submodule add https://github.com/pulp-platform/common_cells.git common_cells && \
-    cd axi && git checkout 5e4bf6cf0c82ec36959b047dc75723fe8711997b && cd .. && \
-    cd common_cells && git checkout 1e384c932576267f55ccc4a111e14b33d988e3fd && cd .. && \
-    cd cva6_ariane && git checkout 2ef1c1b1fca419354920c5487293bc605294904e && cd .. && \
-    cd opentitan && git checkout cf3e35127273247826477c85eeaa2ba2f15c9491 && cd .. && \
-    git submodule update --init --recursive
+    git clone https://github.com/pulp-platform/axi.git axi && \
+    git clone https://github.com/lowRISC/opentitan.git opentitan && \
+    git clone https://github.com/openhwgroup/cva6.git cva6_ariane && \
+    git clone https://github.com/pulp-platform/common_cells.git common_cells && \
+    cd axi && git checkout 5e4bf6cf0c82ec36959b047dc75723fe8711997b && git submodule update --init --recursive && cd .. && \
+    cd common_cells && git checkout 1e384c932576267f55ccc4a111e14b33d988e3fd && git submodule update --init --recursive && cd .. && \
+    cd cva6_ariane && git checkout 2ef1c1b1fca419354920c5487293bc605294904e && git submodule update --init --recursive && cd .. && \
+    cd opentitan && git checkout cf3e35127273247826477c85eeaa2ba2f15c9491 && git submodule update --init --recursive && cd ..
 
 RUN bash scripts/install_verilator.sh
 
