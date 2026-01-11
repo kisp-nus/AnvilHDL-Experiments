@@ -5,7 +5,7 @@ ENV TZ=Etc/UTC
 
 # System Dependencies
 RUN apt-get update && apt-get install -y \
-
+# Basic Tools
     build-essential \
     gcc \
     g++ \
@@ -20,13 +20,13 @@ RUN apt-get update && apt-get install -y \
     libmpfr-dev \
     libgmp-dev \
     zlib1g-dev \
-
+# Required for building toolchains
     bison \
     flex \
     gawk \
     gperf \
     texinfo \
-
+# Other Useful Tools
     curl \
     wget \
     bc \
@@ -34,26 +34,23 @@ RUN apt-get update && apt-get install -y \
     help2man \
     device-tree-compiler \
     libfl-dev \
-
+# Python3 and related tools
     python3 \
     python3-pip \
     python3-venv \
-
+# Misc
     perl \
     ccache \
     libgoogle-perftools-dev \
     numactl \
     perl-doc \
-
     pkg-config \
-
     opam \
     bubblewrap \
-
     bash-completion \
     nano \
-    sudo \
-    && rm -rf /var/lib/apt/lists/*
+    sudo && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN useradd -m -s /bin/bash -G sudo anvil && \
@@ -66,10 +63,11 @@ COPY src/ src/
 COPY scripts/ scripts/
 COPY run_artefact.py .
 COPY README.md .
-COPY .gitmodules .
+# COPY .gitmodules .
 
 
-RUN git clone https://github.com/pulp-platform/axi.git axi && \
+RUN git init && \
+    git clone https://github.com/pulp-platform/axi.git axi && \
     git clone https://github.com/lowRISC/opentitan.git opentitan && \
     git clone https://github.com/openhwgroup/cva6.git cva6_ariane && \
     git clone https://github.com/pulp-platform/common_cells.git common_cells && \

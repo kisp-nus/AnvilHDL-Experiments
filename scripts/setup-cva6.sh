@@ -415,7 +415,7 @@ main() {
     check_prerequisites || exit 1
     
 
-    init_submodules
+    # init_submodules
     
 
     build_toolchain
