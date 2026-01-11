@@ -63,11 +63,9 @@ COPY src/ src/
 COPY scripts/ scripts/
 COPY run_artefact.py .
 COPY README.md .
-# COPY .gitmodules .
 
 
-RUN git init && \
-    git clone https://github.com/pulp-platform/axi.git axi && \
+RUN git clone https://github.com/pulp-platform/axi.git axi && \
     git clone https://github.com/lowRISC/opentitan.git opentitan && \
     git clone https://github.com/openhwgroup/cva6.git cva6_ariane && \
     git clone https://github.com/pulp-platform/common_cells.git common_cells && \
@@ -98,7 +96,7 @@ RUN sed -i -e 's+BINUTILS_REPO=.*$+BINUTILS_REPO=https://github.com/bminor/binut
 
 RUN chmod +x scripts/* && \
     ./scripts/setup-cva6.sh --install-deps 2>&1 | tee /tmp/setup-cva6.log || \
-    (echo "CVA6 setup had issues, check /tmp/setup-cva6.log" && cat /tmp/setup-cva6.log && exit 1)
+    echo "CVA6 setup had issues, check /tmp/setup-cva6.log" && cat /tmp/setup-cva6.log && exit 1
 
 ENV DV_SIMULATORS=veri-testharness,spike
 ENV CVA6_DIR=/workspace/Anvil-Experiments/cva6_ariane
