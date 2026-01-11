@@ -69,8 +69,7 @@ COPY README.md .
 COPY .gitmodules .
 
 
-RUN git init && \
-    git clone https://github.com/pulp-platform/axi.git axi && \
+RUN git clone https://github.com/pulp-platform/axi.git axi && \
     git clone https://github.com/lowRISC/opentitan.git opentitan && \
     git clone https://github.com/openhwgroup/cva6.git cva6_ariane && \
     git clone https://github.com/pulp-platform/common_cells.git common_cells && \
